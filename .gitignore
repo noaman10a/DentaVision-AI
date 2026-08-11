@@ -32,6 +32,8 @@ share/python-wheels/
 *.bin
 *.h5
 *.ckpt
+evaluation_report.json
+dataset_report.json
 
 # Environment
 .env

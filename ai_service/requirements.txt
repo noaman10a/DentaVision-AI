@@ -1,0 +1,25 @@
+# DentaVision AI - AI Service Dependencies
+# Technical Lead: Noaman (AI Model Lead) & Soha (AI Service Lead)
+
+# Core AI & Deep Learning Frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Computer Vision & Image Processing
+opencv-python-headless>=4.8.0
+pillow>=9.5.0
+numpy>=1.24.0
+
+# Data Science, Analysis & Metrics
+scikit-learn>=1.2.0
+
+# Data Validation & Serialization
+pydantic>=2.0.0
+
+# REST API Engine (Soha's domain)
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
+
+# Testing Framework
+pytest>=7.3.0

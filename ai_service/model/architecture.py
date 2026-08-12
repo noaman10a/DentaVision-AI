@@ -10,8 +10,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import os
 import logging
 
-logger = logging.getLogger("DentaVisionNet")
-
+logger = logging.getLogger("ModelArchitecture")
 
 DENTAL_CLASSES = [
     "Caries",
@@ -61,7 +60,7 @@ try:
             self.pool = nn.AdaptiveAvgPool2d((1, 1))
             
             # Classification & Detection head
-            in_features = backbone.classifier[0].in_features
+            in_features: int = getattr(backbone.classifier[0], "in_features")
             self.classifier = nn.Sequential(
                 nn.Linear(in_features, 256),
                 nn.ReLU(inplace=True),

@@ -6,6 +6,14 @@ Implements the official preprocessing steps mandated by the MDS and DEH:
 Input X-ray -> Validate -> Contrast Enhancement (CLAHE) -> Resize -> Normalize -> Tensor/Array
 """
 
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for standalone script execution
+_project_root = str(Path(__file__).resolve().parents[2])
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import logging
 from typing import Tuple, Optional, Union, Dict, Any
 import numpy as np

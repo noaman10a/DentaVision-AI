@@ -65,5 +65,13 @@ class TestPreprocessingPipeline(unittest.TestCase):
         self.assertEqual(metadata["target_size"], (512, 512))
         self.assertEqual(metadata["channels"], 3)
 
+    def test_data_augmentor(self):
+        config = PreprocessingConfig(target_size=(512, 512), apply_augmentation=True)
+        preprocessor = XRayPreprocessor(config)
+        tensor_array, metadata = preprocessor.process(self.sample_gray, augment=True)
+        
+        self.assertEqual(tensor_array.shape, (3, 512, 512))
+        self.assertEqual(metadata["channels"], 3)
+
 if __name__ == "__main__":
     unittest.main()

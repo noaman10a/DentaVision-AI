@@ -9,7 +9,7 @@ Write-Host "==========================================================" -Foregro
 Write-Host " 🦷 Starting DentaVision AI Service on Local Workstation" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-$venvPath = "$rootDir\ai_service\.venv"
+$venvPath = "$rootDir\.venv"
 $pythonExe = "$venvPath\Scripts\python.exe"
 
 if (-not (Test-Path $pythonExe)) {

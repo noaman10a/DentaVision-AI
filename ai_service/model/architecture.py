@@ -8,6 +8,9 @@ Designed for high accuracy and fast CPU inference on clinic workstation PCs.
 
 from typing import List, Dict, Any, Optional, Tuple
 import os
+import logging
+
+logger = logging.getLogger("ModelArchitecture")
 
 DENTAL_CLASSES = [
     "Caries",

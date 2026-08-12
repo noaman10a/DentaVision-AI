@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  doctor
+  reception
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String   @map("full_name")
+  role      Role     @default(doctor)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  visits    PatientVisit[]
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model Patient {
+  id          String   @id @default(uuid())
+  name        String
+  dob         DateTime
+  gender      String
+  phone       String
+  email       String?
+  address     String?
+  status      String   @default("Registered")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  visits            PatientVisit[]
+  medicalHistories  MedicalHistory[]
+  xrayRecords       XrayRecord[]
+  reports           Report[]
+  documents         Document[]
+  timelineEvents    Timeline[]
+  followUps         FollowUp[]
+
+  @@map("patients")
+}
+
+model PatientVisit {
+  id             String   @id @default(uuid())
+  patientId      String   @map("patient_id")
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  date           DateTime @default(now())
+  doctorId       String   @map("doctor_id")
+  doctor         User     @relation(fields: [doctorId], references: [id])
+  chiefComplaint String   @map("chief_complaint")
+  diagnosis      String?
+  treatmentPlan  String?  @map("treatment_plan")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  clinicalExaminations ClinicalExamination[]
+  prescriptions        Prescription[]
+  xrayRecords          XrayRecord[]
+  reports              Report[]
+  documents            Document[]
+  followUps            FollowUp[]
+
+  @@map("patient_visits")
+}
+
+model MedicalHistory {
+  id        String   @id @default(uuid())
+  patientId String   @map("patient_id")
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  condition String
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("medical_history")
+}
+
+model ClinicalExamination {
+  id           String       @id @default(uuid())
+  visitId      String       @map("visit_id")
+  visit        PatientVisit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  notes        String?
+  observations String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@map("clinical_examinations")
+}
+
+model Prescription {
+  id           String       @id @default(uuid())
+  visitId      String       @map("visit_id")
+  visit        PatientVisit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  medicine     String
+  strength     String
+  dose         String
+  frequency    String
+  timing       String
+  duration     String
+  instructions String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@map("prescriptions")
+}
+
+model XrayRecord {
+  id         String        @id @default(uuid())
+  patientId  String        @map("patient_id")
+  patient    Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visitId    String?       @map("visit_id")
+  visit      PatientVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  filePath   String        @map("file_path")
+  fileSize   Int           @map("file_size")
+  format     String
+  status     String        @default("pending")
+  uploadedAt DateTime      @default(now()) @map("uploaded_at")
+
+  aiAnalyses AiAnalysis[]
+
+  @@map("xray_records")
+}
+
+model AiAnalysis {
+  id              String     @id @default(uuid())
+  xrayId          String     @map("xray_id")
+  xray            XrayRecord @relation(fields: [xrayId], references: [id], onDelete: Cascade)
+  status          String
+  modelVersion    String     @map("model_version")
+  inferenceTimeMs Float      @map("inference_time_ms")
+  findingsCount   Int        @map("findings_count")
+  findings        Json
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  reports Report[]
+
+  @@map("ai_analyses")
+}
+
+model Report {
+  id           String      @id @default(uuid())
+  patientId    String      @map("patient_id")
+  patient      Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visitId      String      @map("visit_id")
+  visit        PatientVisit @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  aiAnalysisId String?     @map("ai_analysis_id")
+  aiAnalysis   AiAnalysis? @relation(fields: [aiAnalysisId], references: [id], onDelete: SetNull)
+  doctorNotes  String?     @map("doctor_notes")
+  isFinalized  Boolean     @default(false) @map("is_finalized")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@map("reports")
+}
+
+model Document {
+  id         String        @id @default(uuid())
+  patientId  String        @map("patient_id")
+  patient    Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visitId    String?       @map("visit_id")
+  visit      PatientVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  fileName   String        @map("file_name")
+  filePath   String        @map("file_path")
+  fileType   String        @map("file_type")
+  fileSize   Int           @map("file_size")
+  uploadedAt DateTime      @default(now()) @map("uploaded_at")
+
+  @@map("documents")
+}
+
+model Timeline {
+  id          String   @id @default(uuid())
+  patientId   String   @map("patient_id")
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  eventType   String   @map("event_type")
+  eventId     String   @map("event_id")
+  description String
+  timestamp   DateTime @default(now())
+
+  @@map("timelines")
+}
+
+model FollowUp {
+  id           String        @id @default(uuid())
+  patientId    String        @map("patient_id")
+  patient      Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  visitId      String?       @map("visit_id")
+  visit        PatientVisit? @relation(fields: [visitId], references: [id], onDelete: SetNull)
+  followUpDate DateTime      @map("follow_up_date")
+  status       String        @default("scheduled")
+  notes        String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("follow_ups")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  target    String
+  ipAddress String?  @map("ip_address")
+  timestamp DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model ApplicationSetting {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("application_settings")
+}

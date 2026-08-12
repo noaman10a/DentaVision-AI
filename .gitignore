@@ -46,6 +46,8 @@ venv.bak/
 
 # Node / Desktop / Backend
 node_modules/
+desktop/node_modules/
+desktop/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

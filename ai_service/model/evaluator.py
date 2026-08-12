@@ -53,6 +53,8 @@ class ModelEvaluator:
                         
                         start_t = time.time()
                         outputs = self.model(x_test)
+                        if not isinstance(outputs, torch.Tensor):
+                            outputs = torch.tensor(outputs)
                         elapsed_ms = (time.time() - start_t) * 1000.0
                         latencies_ms.append(elapsed_ms)
 

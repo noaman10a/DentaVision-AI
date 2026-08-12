@@ -27,6 +27,7 @@ share/python-wheels/
 
 # PyTorch / ML Model weights
 *.pt
+!ai_service/model/checkpoints/best_model.pt
 *.pth
 *.onnx
 *.bin

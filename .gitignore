@@ -51,6 +51,9 @@ yarn-debug.log*
 yarn-error.log*
 .next/
 out/
+backend/dist/
+backend/.env
+desktop/.env
 
 # Operating System
 .DS_Store

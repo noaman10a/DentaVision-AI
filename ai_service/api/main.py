@@ -69,9 +69,12 @@ def get_predictor() -> XRayPredictor:
     """Singleton getter for XRayPredictor model pipeline."""
     global _predictor
     if _predictor is None:
-        logger.info("Initializing XRayPredictor model instance...")
-        _predictor = XRayPredictor(weights_path=None, device="cpu", confidence_threshold=0.5)
+        checkpoint_path = "ai_service/model/checkpoints/best_model.pt"
+        weights_to_load = checkpoint_path if os.path.exists(checkpoint_path) else None
+        logger.info(f"Initializing XRayPredictor model instance (weights: {weights_to_load})...")
+        _predictor = XRayPredictor(weights_path=weights_to_load, device="cpu", confidence_threshold=0.5)
     return _predictor
+
 
 
 

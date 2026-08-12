@@ -6,6 +6,14 @@ Combines Preprocessing, Model Inference, and Postprocessing into a single, high-
 Tested independently from FastAPI web services as required by Section 8 of the DEH.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for standalone script execution
+_project_root = str(Path(__file__).resolve().parents[2])
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import time
 import logging
 from typing import Dict, Any, Optional, Union
@@ -82,3 +90,12 @@ class XRayPredictor:
         )
 
         return output_json
+
+
+if __name__ == "__main__":
+    import json
+    # Run a test prediction on a synthetic 512x512 image array
+    dummy_xray = np.random.randint(50, 200, (512, 512), dtype=np.uint8)
+    predictor = XRayPredictor()
+    res = predictor.predict(dummy_xray, patient_id="2026/0705", xray_id="test_xray_001")
+    print(json.dumps(res, indent=2))

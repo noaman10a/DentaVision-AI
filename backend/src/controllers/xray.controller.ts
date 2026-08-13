@@ -4,17 +4,20 @@
  *
  * Handles POST /api/v1/xrays/analyze — the core AI proxy endpoint.
  *
- * Full pipeline:
- *   1. Receive multipart upload (X-ray image + patient_id + xray_id)
- *   2. Create XrayRecord in DB (status: pending)
- *   3. Forward temp file to Soha's FastAPI AI service
- *   4. Delete temp file from disk — ALWAYS (success or failure)
- *   5. Persist AI findings into AiAnalysis table (status: analyzed)
- *   6. Return structured findings JSON to the Desktop client
+ * Full pipeline (with Supabase Storage):
+ *   1. Receive multipart upload (X-ray image + patient_id + visit_id?)
+ *   2. Create XrayRecord in DB (status: pending, filePath: temp)
+ *   3. Forward temp file to Soha's FastAPI AI service → get findings
+ *   4. Upload temp file to Supabase Storage → get permanent URL
+ *   5. Update XrayRecord.filePath with permanent Supabase URL
+ *   6. Delete temp file from disk — ALWAYS (success or failure)
+ *   7. Persist AI findings into AiAnalysis table (status: analyzed)
+ *   8. Return structured findings JSON to the Desktop client
  *
  * Error contract (per Noaman's work request):
  *   - Temp files are NEVER left on disk after inference
  *   - AI service errors are surfaced as 502 Bad Gateway
+ *   - Storage errors are logged but do NOT block the response
  *   - DB errors are surfaced as 500 Internal Error
  */
 
@@ -23,10 +26,12 @@ import path from "path";
 import fs from "fs";
 
 import { analyzeXrayWithAiService } from "../utils/aiClient";
+import { uploadXrayToStorage } from "../utils/storage.service";
 import {
   createXrayRecord,
   saveAiAnalysis,
   updateXrayStatus,
+  updateXrayFilePath,
   getXraysByPatient,
 } from "../services/xray.service";
 import { AppError, badRequest } from "../middleware/errorHandler";
@@ -64,6 +69,7 @@ export const analyzeXrayController = async (
   }
 
   const tempFilePath = tempFile.path;
+  const fileFormat = path.extname(tempFile.originalname).replace(".", "").toLowerCase();
   const { patient_id, visit_id } = req.body as {
     patient_id?: string;
     visit_id?: string;
@@ -80,9 +86,9 @@ export const analyzeXrayController = async (
     xrayRecord = await createXrayRecord(
       patient_id,
       visit_id ?? null,
-      tempFilePath,
+      tempFilePath, // temporary path — will be updated to Storage URL below
       tempFile.size,
-      path.extname(tempFile.originalname).replace(".", "").toLowerCase()
+      fileFormat
     );
   } catch (dbError) {
     deleteTempFile(tempFilePath);
@@ -104,20 +110,36 @@ export const analyzeXrayController = async (
     deleteTempFile(tempFilePath);
 
     // Mark X-ray as failed in DB
-    try {
-      await updateXrayStatus(xrayRecordId, "failed");
-    } catch {
-      /* best-effort */
-    }
+    try { await updateXrayStatus(xrayRecordId, "failed"); } catch { /* best-effort */ }
 
     const msg = aiError instanceof Error ? aiError.message : String(aiError);
     return next(new AppError(msg, 502, "AI_SERVICE_ERROR"));
   }
 
-  // --- Step 3: Delete temp file (ALWAYS after inference) ---
+  // --- Step 3: Upload to Supabase Storage (permanent URL) ---
+  let permanentUrl: string | null = null;
+  try {
+    permanentUrl = await uploadXrayToStorage(
+      tempFilePath,
+      patient_id,
+      xrayRecordId,
+      fileFormat
+    );
+    // Update DB record with permanent URL
+    await updateXrayFilePath(xrayRecordId, permanentUrl);
+    console.log(`[Storage] X-ray uploaded: ${permanentUrl}`);
+  } catch (storageError) {
+    // Storage failure is non-blocking — findings are still saved to DB
+    console.warn(
+      `[Storage] Upload failed for xray ${xrayRecordId}:`,
+      storageError instanceof Error ? storageError.message : storageError
+    );
+  }
+
+  // --- Step 4: Delete temp file (ALWAYS after inference + storage) ---
   deleteTempFile(tempFilePath);
 
-  // --- Step 4: Persist AI Analysis to DB ---
+  // --- Step 5: Persist AI Analysis to DB ---
   let aiAnalysis;
   try {
     aiAnalysis = await saveAiAnalysis(xrayRecordId, aiResult);
@@ -125,13 +147,14 @@ export const analyzeXrayController = async (
     return next(dbError);
   }
 
-  // --- Step 5: Return structured response ---
+  // --- Step 6: Return structured response ---
   res.status(200).json({
     success: true,
     data: {
       xray_record_id: xrayRecordId,
       ai_analysis_id: aiAnalysis.id,
       patient_id,
+      storage_url: permanentUrl,
       model_version: aiResult.model_version,
       inference_time_ms: aiResult.inference_time_ms,
       findings_count: aiResult.findings_count,
@@ -161,5 +184,3 @@ export const getXraysByPatientController = async (
     next(error);
   }
 };
-
-

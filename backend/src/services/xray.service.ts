@@ -56,6 +56,21 @@ export const updateXrayStatus = async (
 };
 
 /**
+ * Updates the filePath of an X-ray record to a permanent Supabase Storage URL.
+ * Called after the file is uploaded to cloud storage.
+ */
+export const updateXrayFilePath = async (
+  xrayRecordId: string,
+  permanentUrl: string
+) => {
+  return await prisma.xrayRecord.update({
+    where: { id: xrayRecordId },
+    data: { filePath: permanentUrl },
+  });
+};
+
+
+/**
  * Retrieves all X-ray records for a patient, most recent first.
  */
 export const getXraysByPatient = async (patientId: string) => {

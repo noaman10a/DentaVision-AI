@@ -28,6 +28,7 @@ import reportRoutes       from "./routes/report.routes";
 import timelineRoutes     from "./routes/timeline.routes";
 import followupRoutes     from "./routes/followup.routes";
 import xrayRoutes         from "./routes/xray.routes";
+import { ensureXrayBucketExists } from "./utils/storage.service";
 
 // ---------------------------------------------------------------------------
 // Application Setup
@@ -99,6 +100,11 @@ app.listen(env.PORT, () => {
   console.log(`   AI Service : ${env.AI_SERVICE_URL}`);
   console.log(`   Routes     : patients | visits | prescriptions | reports | timeline | followups | xrays`);
   console.log(``);
+
+  // Ensure Supabase Storage bucket exists (idempotent)
+  ensureXrayBucketExists().catch((err) =>
+    console.warn("[Storage] Bucket check failed:", err?.message)
+  );
 });
 
 export default app;

@@ -6,10 +6,17 @@ Calculates key classification & detection evaluation metrics:
 Accuracy, Precision, Recall, F1-Score, Confusion Matrix, and Average CPU Inference Latency.
 """
 
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for standalone script execution
+_project_root = str(Path(__file__).resolve().parents[2])
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import time
 import json
 import logging
-from pathlib import Path
 from typing import Dict, Any, List, Optional
 import numpy as np
 
@@ -46,6 +53,8 @@ class ModelEvaluator:
                         
                         start_t = time.time()
                         outputs = self.model(x_test)
+                        if not isinstance(outputs, torch.Tensor):
+                            outputs = torch.tensor(outputs)
                         elapsed_ms = (time.time() - start_t) * 1000.0
                         latencies_ms.append(elapsed_ms)
 

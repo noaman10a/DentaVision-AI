@@ -46,5 +46,16 @@ class TestInferencePredictor(unittest.TestCase):
         self.assertIn("findings", res)
         self.assertGreaterEqual(res["inference_time_ms"], 0.0)
 
+    def test_predictor_nms_suppression(self):
+        # Two overlapping proposals with class_id 0
+        raw_proposals = [
+            {"class_id": 0, "finding_type": "Caries", "confidence": 0.95, "bounding_box": [0.1, 0.1, 0.4, 0.4]},
+            {"class_id": 0, "finding_type": "Caries", "confidence": 0.85, "bounding_box": [0.12, 0.12, 0.38, 0.38]}
+        ]
+        nms_filtered = XRayPredictor.apply_nms(raw_proposals, iou_threshold=0.45)
+        # Should keep only the higher confidence proposal (0.95)
+        self.assertEqual(len(nms_filtered), 1)
+        self.assertEqual(nms_filtered[0]["confidence"], 0.95)
+
 if __name__ == "__main__":
     unittest.main()

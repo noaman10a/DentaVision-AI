@@ -6,6 +6,14 @@ Implements the official preprocessing steps mandated by the MDS and DEH:
 Input X-ray -> Validate -> Contrast Enhancement (CLAHE) -> Resize -> Normalize -> Tensor/Array
 """
 
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for standalone script execution
+_project_root = str(Path(__file__).resolve().parents[2])
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import logging
 from typing import Tuple, Optional, Union, Dict, Any
 import numpy as np
@@ -21,7 +29,8 @@ class PreprocessingConfig:
         mean: Tuple[float, float, float] = (0.485, 0.456, 0.406),
         std: Tuple[float, float, float] = (0.229, 0.224, 0.225),
         apply_clahe: bool = True,
-        apply_denoise: bool = False
+        apply_denoise: bool = False,
+        apply_augmentation: bool = False
     ):
         self.target_size = target_size
         self.clip_limit = clip_limit
@@ -30,6 +39,50 @@ class PreprocessingConfig:
         self.std = std
         self.apply_clahe = apply_clahe
         self.apply_denoise = apply_denoise
+        self.apply_augmentation = apply_augmentation
+
+
+class DataAugmentor:
+    """Applies realistic dental X-ray augmentations: spatial rotation, contrast/exposure jitter, and sensor noise."""
+    @staticmethod
+    def augment(
+        image: np.ndarray,
+        max_rotation_deg: float = 10.0,
+        contrast_range: Tuple[float, float] = (0.85, 1.15),
+        brightness_range: Tuple[int, int] = (-15, 15),
+        noise_std: float = 5.0
+    ) -> np.ndarray:
+        """Applies photometric and spatial augmentations to a numpy image array."""
+        augmented = image.copy().astype(np.float32)
+
+        # 1. Random Brightness & Contrast Jittering
+        alpha = np.random.uniform(contrast_range[0], contrast_range[1])
+        beta = np.random.uniform(brightness_range[0], brightness_range[1])
+        augmented = augmented * alpha + beta
+        augmented = np.clip(augmented, 0.0, 255.0).astype(np.uint8)
+
+        # 2. Random Gaussian Sensor Noise
+        if noise_std > 0 and np.random.rand() > 0.5:
+            noise = np.random.normal(0, noise_std, augmented.shape).astype(np.float32)
+            augmented = np.clip(augmented.astype(np.float32) + noise, 0.0, 255.0).astype(np.uint8)
+
+        # 3. Slight Random Spatial Rotation (Affine transform)
+        if max_rotation_deg > 0:
+            angle = np.random.uniform(-max_rotation_deg, max_rotation_deg)
+            h, w = augmented.shape[:2]
+            center = (w // 2, h // 2)
+            try:
+                import cv2
+                matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+                augmented = cv2.warpAffine(augmented, matrix, (w, h), borderMode=cv2.BORDER_REPLICATE)
+            except ImportError:
+                from PIL import Image
+                pil_img = Image.fromarray(augmented)
+                rotated = pil_img.rotate(angle, resample=Image.BILINEAR)
+                augmented = np.array(rotated)
+
+        return augmented
+
 
 
 class ImageValidator:
@@ -143,13 +196,14 @@ class XRayPreprocessor:
     def __init__(self, config: Optional[PreprocessingConfig] = None):
         self.config = config or PreprocessingConfig()
 
-    def process(self, image: np.ndarray) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def process(self, image: np.ndarray, augment: Optional[bool] = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         """
         Full preprocessing pipeline execution:
         1. Validate
-        2. Contrast Enhancement (CLAHE)
-        3. Resize with Padding
-        4. Normalize & Transpose to CHW tensor array
+        2. Apply Augmentation (if enabled for training)
+        3. Contrast Enhancement (CLAHE)
+        4. Resize with Padding
+        5. Normalize & Transpose to CHW tensor array
         """
         valid, msg = ImageValidator.validate(image)
         if not valid:
@@ -157,7 +211,12 @@ class XRayPreprocessor:
 
         processed = image.copy()
 
-        # Step 2: CLAHE Contrast Enhancement
+        # Step 2: Data Augmentation (if requested or config enabled)
+        should_augment = augment if augment is not None else self.config.apply_augmentation
+        if should_augment:
+            processed = DataAugmentor.augment(processed)
+
+        # Step 3: CLAHE Contrast Enhancement
         if self.config.apply_clahe:
             processed = ContrastEnhancer.apply_clahe(
                 processed,

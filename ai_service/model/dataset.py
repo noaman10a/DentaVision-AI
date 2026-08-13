@@ -41,7 +41,8 @@ class DummyDataset:
 try:
     import torch
     from torch.utils.data import Dataset, DataLoader
-    from PIL import Image
+    from PIL import Image, ImageFile
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
 
     class DentalXRayDataset(Dataset):
         def __init__(
@@ -81,25 +82,29 @@ try:
             return len(self.image_paths)
 
         def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-            img_path = self.image_paths[idx]
-            
-            try:
-                # Load image array
-                with Image.open(img_path) as img:
-                    img_array = np.array(img.convert("RGB"))
-            except Exception as e:
-                logger.error(f"Error loading image {img_path}: {e}")
-                img_array = np.zeros((640, 640, 3), dtype=np.uint8)
+            for attempt in range(min(10, max(1, len(self.image_paths)))):
+                current_idx = (idx + attempt) % len(self.image_paths)
+                img_path = self.image_paths[current_idx]
+                
+                try:
+                    # Load image array
+                    with Image.open(img_path) as img:
+                        img_array = np.array(img.convert("RGB"))
+                    # Process through preprocessing pipeline (with data augmentation for training)
+                    tensor_array, metadata = self.preprocessor.process(img_array, augment=self.is_train)
+                    
+                    tensor_x = torch.from_numpy(tensor_array).float()
+                    target_info = self.targets[current_idx]
+                    target_class = int(target_info.get("class_id", 0))
+                    tensor_y = torch.tensor(target_class, dtype=torch.long)
+                    return tensor_x, tensor_y
+                except Exception as e:
+                    logger.warning(f"Skipping corrupt/truncated image {img_path}: {e}")
 
-            # Process through preprocessing pipeline
-            tensor_array, metadata = self.preprocessor.process(img_array)
-            tensor_x = torch.from_numpy(tensor_array).float()
-
-            target_info = self.targets[idx]
-            target_class = int(target_info.get("class_id", 0))
-            tensor_y = torch.tensor(target_class, dtype=torch.long)
-
-            return tensor_x, tensor_y
+            # Safe fallback tensor
+            dummy_x = torch.zeros((3, 640, 640), dtype=torch.float32)
+            dummy_y = torch.tensor(0, dtype=torch.long)
+            return dummy_x, dummy_y
 
     def create_dataloader(
         data_dir: str,

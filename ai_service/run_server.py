@@ -21,7 +21,8 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "8000"))
     
-    print(f"🚀 Starting DentaVision AI Local REST Service on http://{host}:{port}")
+    print(f"[*] Starting DentaVision AI Local REST Service on http://{host}:{port}")
+
     uvicorn.run(
         "ai_service.api.main:app",
         host=host,

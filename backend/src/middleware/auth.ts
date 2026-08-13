@@ -14,7 +14,7 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import { supabaseAnon } from "../utils/supabase";
+import { getSupabaseAnon } from "../utils/supabase";
 import { env, isDev } from "../config/env";
 import { unauthorized, forbidden } from "./errorHandler";
 
@@ -61,7 +61,7 @@ export const requireAuth = async (
   const token = authHeader.split(" ")[1];
 
   try {
-    const { data, error } = await supabaseAnon.auth.getUser(token);
+    const { data, error } = await getSupabaseAnon().auth.getUser(token);
     if (error || !data.user) {
       return next(unauthorized("Invalid or expired token"));
     }

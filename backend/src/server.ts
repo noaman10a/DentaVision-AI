@@ -6,7 +6,7 @@
  *   - Environment configuration (dotenv)
  *   - Security middleware (helmet, CORS)
  *   - Body parsing
- *   - API v1 routing
+ *   - API v1 routing (patients, appointments, xrays/AI proxy)
  *   - Health check endpoint
  *   - Global error handling
  */
@@ -20,6 +20,7 @@ import { env } from "./config/env";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import patientRoutes from "./routes/patient.routes";
 import appointmentRoutes from "./routes/appointment.routes";
+import xrayRoutes from "./routes/xray.routes";
 
 // ---------------------------------------------------------------------------
 // Application Setup
@@ -66,6 +67,7 @@ app.get("/api/v1/health", (_req, res) => {
 
 app.use("/api/v1/patients", patientRoutes);
 app.use("/api/v1/appointments", appointmentRoutes);
+app.use("/api/v1/xrays", xrayRoutes);
 
 // ---------------------------------------------------------------------------
 // Error Handling (must be last)

@@ -1,0 +1,71 @@
+{
+  "model_version": "v1.0.0",
+  "weights_path": "ai_service/model/checkpoints/best_model.pt",
+  "test_samples_count": 1620,
+  "classes": [
+    "Caries",
+    "Periapical Lesion",
+    "Bone Loss",
+    "Restoration",
+    "Impacted Tooth",
+    "Normal"
+  ],
+  "metrics": {
+    "accuracy": 1.0,
+    "macro_precision": 0.1667,
+    "macro_recall": 0.1667,
+    "macro_f1": 0.1667,
+    "avg_latency_ms": 16.67,
+    "confusion_matrix": [
+      [
+        1620,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "timestamp": "2026-08-14T17:16:34Z"
+}

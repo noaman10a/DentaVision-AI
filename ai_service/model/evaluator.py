@@ -14,6 +14,7 @@ _project_root = str(Path(__file__).resolve().parents[2])
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+import os
 import time
 import json
 import logging
@@ -29,6 +30,9 @@ logger = logging.getLogger("ModelEvaluator")
 class ModelEvaluator:
     def __init__(self, weights_path: Optional[str] = None, device: str = "cpu"):
         self.device = device
+        default_weights = "ai_service/model/checkpoints/best_model.pt"
+        if weights_path is None and os.path.exists(default_weights):
+            weights_path = default_weights
         self.weights_path = weights_path
         self.model = load_model(weights_path=weights_path, device=device)
 

@@ -52,6 +52,7 @@ class StructuredFindingsFormatter:
                 "id": str(uuid.uuid4()),
                 "finding_type": finding_type,
                 "confidence": round(conf, 4),
+                "confidence_percentage": f"{round(conf * 100, 1)}%",
                 "bounding_box": bbox_dict,
                 "tooth_number": pred.get("tooth_number"),
                 "severity": pred.get("severity", "Pending Review")

@@ -15,7 +15,7 @@
     "macro_precision": 0.1667,
     "macro_recall": 0.1667,
     "macro_f1": 0.1667,
-    "avg_latency_ms": 21.3,
+    "avg_latency_ms": 17.76,
     "confusion_matrix": [
       [
         2,
@@ -67,5 +67,5 @@
       ]
     ]
   },
-  "timestamp": "2026-08-17T16:56:52Z"
+  "timestamp": "2026-08-17T17:15:37Z"
 }

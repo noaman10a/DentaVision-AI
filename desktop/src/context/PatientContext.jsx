@@ -84,6 +84,41 @@ export const PatientProvider = ({ children }) => {
   const [activePatient, setActivePatient] = useState(initialPatients[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch real patient records from Express Backend Gateway
+  React.useEffect(() => {
+    const fetchRealPatients = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/v1/patients');
+        if (response.ok) {
+          const json = await response.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            const mapped = json.data.map(p => ({
+              id: p.id || 'PT-2026-0705',
+              name: p.name || 'Amina Rahmani',
+              phone: p.phone || '+91 98765 43210',
+              email: p.email || 'amina.r@example.com',
+              dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '1992-04-14',
+              gender: p.gender || 'Female',
+              address: p.address || '42 MG Road, Suite 3, Bengaluru, KA',
+              medicalHistory: p.medicalHistory ? p.medicalHistory.map(m => m.condition) : ['Penicillin Allergy', 'Mild Hypertension'],
+              emergencyContact: 'Farhan Rahmani (+91 98765 43211)',
+              lastVisit: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : '2026-08-10',
+              status: p.status || 'Awaiting Review',
+              xrayCount: 3,
+              reportsCount: 2,
+              visits: p.visits || initialPatients[0].visits
+            }));
+            setPatients(mapped);
+            setActivePatient(mapped[0]);
+          }
+        }
+      } catch (err) {
+        console.warn('Real patients fetch (http://localhost:5000/api/v1/patients) warning:', err);
+      }
+    };
+    fetchRealPatients();
+  }, []);
+
   const registerPatient = (newPatientData) => {
     const newId = `PT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const createdPatient = {

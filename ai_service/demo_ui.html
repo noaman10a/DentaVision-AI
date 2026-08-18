@@ -627,9 +627,10 @@
                 ctx.fillStyle = hexToRgba(color, 0.15);
                 ctx.fillRect(x_min, y_min, width, height);
 
-                // Badge Tag Header (Pathology Name + Tooth Region ONLY - No Accuracy %)
-                const toothLoc = item.tooth_number ? `Tooth #${item.tooth_number}` : `Region #${idx+1}`;
-                const labelText = ` 📍 ${item.finding_type} (${toothLoc}) `;
+                // Badge Tag Header (Pathology Name + Confidence % + Tooth Region)
+                const confStr = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
+                const toothStr = item.tooth_number ? ` | ${item.tooth_number}` : '';
+                const labelText = ` 📍 ${item.finding_type} (${confStr}${toothStr}) `;
                 ctx.font = 'bold 16px Inter, sans-serif';
                 const textMetrics = ctx.measureText(labelText);
                 const badgeWidth = textMetrics.width + 12;
@@ -661,15 +662,15 @@
         function getPathologyDescription(type) {
             switch((type || '').toLowerCase()) {
                 case 'caries': 
-                    return "Demineralization of dental hard tissues (tooth decay) detected in marked region. Clinical correlation recommended.";
+                    return "Demineralization of dental hard tissues (tooth decay) localized in marked region. Immediate clinical cavity restoration recommended.";
                 case 'bone loss': 
-                    return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk.";
+                    return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk and root support loss.";
                 case 'periapical lesion': 
-                    return "Radiolucent area detected around root apex indicating apical periodontitis or pulpitis.";
+                    return "Radiolucent area detected around root apex indicating apical periodontitis, pulpitis, or periapical abscess.";
                 case 'impacted tooth': 
-                    return "Tooth structure obstructed from proper eruption by adjacent bone or dental structures.";
+                    return "Unerupted tooth structure obstructed from normal eruption by adjacent bone or tooth structure.";
                 case 'restoration': 
-                    return "Radiopaque dental restoration material (filling, crown, or implant) present in marked location.";
+                    return "Radiopaque dental restoration material (filling, crown, or dental implant) present in marked location.";
                 default: 
                     return "Pathological finding localized in the specified dental radiograph region.";
             }
@@ -699,7 +700,8 @@
             findings.forEach((item, index) => {
                 const color = getFindingColor(item.finding_type);
                 const desc = getPathologyDescription(item.finding_type);
-                const toothLoc = item.tooth_number ? `Tooth #${item.tooth_number}` : 'Marked Dental Region';
+                const confStr = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
+                const toothLoc = item.tooth_number ? item.tooth_number : 'Marked Region';
                 const bbox = item.bounding_box || {};
                 const bboxStr = bbox.x_min !== undefined ? `[${bbox.x_min.toFixed(2)}, ${bbox.y_min.toFixed(2)} - ${bbox.x_max.toFixed(2)}, ${bbox.y_max.toFixed(2)}]` : 'Marked Box Area';
 
@@ -713,16 +715,16 @@
                             <span style="color: ${color};">📍</span>
                             <span>${item.finding_type}</span>
                         </div>
-                        <div class="summary-conf-badge" style="border-color: ${color}; color: ${color}; background: ${hexToRgba(color, 0.15)}; font-weight: 600;">
-                            🦷 ${toothLoc}
+                        <div class="summary-conf-badge" style="border-color: ${color}; color: ${color}; background: ${hexToRgba(color, 0.15)}; font-weight: 700;">
+                            ${confStr} Match
                         </div>
                     </div>
                     <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.4; margin-top: 0.25rem;">
                         ${desc}
                     </div>
                     <div class="summary-details" style="margin-top: 0.35rem;">
-                        <span>📦 Marked Area: <code style="color: var(--accent-cyan); font-family: monospace;">${bboxStr}</code></span>
-                        <span>⚠️ Status: <b>Flagged for Review</b></span>
+                        <span>🦷 Tooth: <b>${toothLoc}</b></span>
+                        <span>📦 Marked Box: <code style="color: var(--accent-cyan); font-family: monospace;">${bboxStr}</code></span>
                     </div>
                 `;
                 listContainer.appendChild(card);

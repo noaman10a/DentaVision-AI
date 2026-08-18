@@ -42,7 +42,7 @@ export const DocumentsModule = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <FolderOpen size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Patient Documents Vault
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -71,11 +71,11 @@ export const DocumentsModule = () => {
         {docs.map(doc => (
           <div key={doc.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', backgroundColor: 'var(--primary-teal-glow)' }}>
                 {doc.type === 'image' ? <Image size={20} color="var(--primary-teal)" /> : <File size={20} color="var(--secondary-cyan)" />}
               </div>
               <div style={{ overflow: 'hidden' }}>
-                <h5 style={{ fontSize: '13px', fontWeight: '600', color: '#fff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                <h5 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                   {doc.name}
                 </h5>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{doc.size} • {doc.date}</p>
@@ -114,9 +114,9 @@ export const DocumentsModule = () => {
 
       {/* Viewer Modal */}
       {selectedDoc && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.75)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div className="glass-card" style={{ maxWidth: '500px', width: '100%', padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '10px' }}>Document Preview: {selectedDoc.name}</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '10px', color: 'var(--text-primary)' }}>Document Preview: {selectedDoc.name}</h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
               Size: {selectedDoc.size} • Date Uploaded: {selectedDoc.date}
             </p>

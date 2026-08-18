@@ -95,7 +95,7 @@ export const HealthCheckScreen = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Activity size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               System Health & Diagnostics Center
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -126,7 +126,7 @@ export const HealthCheckScreen = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '16px',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          backgroundColor: 'var(--status-success-bg)',
           border: '1px solid rgba(16, 185, 129, 0.3)',
         }}
       >
@@ -151,11 +151,11 @@ export const HealthCheckScreen = () => {
             <div key={srv.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ padding: '10px', borderRadius: '10px', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ padding: '10px', borderRadius: '10px', backgroundColor: 'var(--btn-secondary-bg)' }}>
                     <Icon size={22} color={srv.color} />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>{srv.name}</h4>
+                    <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>{srv.name}</h4>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{srv.category}</span>
                   </div>
                 </div>

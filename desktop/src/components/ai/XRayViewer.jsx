@@ -49,6 +49,7 @@ export const XRayViewer = () => {
               fontSize: '12px',
               backgroundColor: showOverlays ? 'var(--primary-teal-glow)' : 'transparent',
               borderColor: showOverlays ? 'var(--primary-teal)' : 'var(--border-glass)',
+              color: showOverlays ? 'var(--primary-teal)' : 'var(--text-primary)',
             }}
           >
             <Layers size={14} />
@@ -124,7 +125,7 @@ export const XRayViewer = () => {
                   width,
                   height,
                   border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
-                  backgroundColor: isSelected ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.08)',
+                  backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.1)',
                   cursor: 'pointer',
                   boxShadow: isSelected ? `0 0 16px ${statusColor}` : 'none',
                   borderRadius: '4px',
@@ -164,7 +165,7 @@ export const XRayViewer = () => {
       {activeFinding && (
         <div
           style={{
-            backgroundColor: 'rgba(30, 41, 59, 0.6)',
+            backgroundColor: 'var(--btn-secondary-bg)',
             borderRadius: 'var(--radius-md)',
             padding: '14px',
             border: '1px solid var(--border-glass)',
@@ -173,11 +174,12 @@ export const XRayViewer = () => {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '12px',
+            transition: 'var(--transition-theme)',
           }}
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
                 Selected: Tooth #{activeFinding.tooth_number} - {activeFinding.finding_type}
               </h4>
               <span className={`badge ${

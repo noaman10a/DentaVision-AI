@@ -60,7 +60,7 @@ export const TimelineModule = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <History size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Chronological Patient Journey Timeline
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -100,20 +100,21 @@ export const TimelineModule = () => {
                 {/* Event Card */}
                 <div
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    backgroundColor: 'var(--btn-secondary-bg)',
                     border: '1px solid var(--border-glass)',
                     borderRadius: '10px',
                     padding: '16px',
+                    transition: 'var(--transition-theme)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <span className="badge" style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: ev.color, border: `1px solid ${ev.color}` }}>
+                    <span className="badge" style={{ backgroundColor: 'var(--primary-teal-glow)', color: ev.color, border: `1px solid ${ev.color}` }}>
                       {ev.category}
                     </span>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{ev.date}</span>
                   </div>
 
-                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginTop: '6px' }}>
+                  <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)', marginTop: '6px' }}>
                     {ev.title}
                   </h4>
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>

@@ -28,7 +28,10 @@ export const Header = () => {
     const checkHealth = async () => {
       const start = Date.now();
       try {
-        const res = await fetch('http://127.0.0.1:8000/health');
+        let res = await fetch('http://localhost:5000/api/v1/health');
+        if (!res.ok) {
+          res = await fetch('http://127.0.0.1:8000/health');
+        }
         if (res.ok) {
           const lat = Date.now() - start;
           setAiHealth({ online: true, latency: `${lat}ms` });

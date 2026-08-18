@@ -75,44 +75,65 @@ export const AIProvider = ({ children }) => {
     checkServiceHealth();
   }, []);
 
-  const runAIAnalysis = async (xrayId, imageSrc, file) => {
+  const runAIAnalysis = async (xrayId, imageSrc, file, patientId = 'PT-2026-0705', visitId) => {
     setIsAnalyzing(true);
     try {
       const formData = new FormData();
       if (file) {
         formData.append('file', file);
       }
-      formData.append('patient_id', 'PT-2026-0705');
-      formData.append('xray_id', xrayId || 'XRAY-2026-0042');
+      formData.append('patient_id', patientId || 'PT-2026-0705');
+      if (visitId) {
+        formData.append('visit_id', visitId);
+      }
 
-      // Try primary API v1 analyze endpoint first
-      let response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
+      // 1. Primary: Route via Express Backend Gateway (POST http://localhost:5000/api/v1/xrays/analyze)
+      let response = await fetch('http://localhost:5000/api/v1/xrays/analyze', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        // Fallback try root /analyze
-        response = await fetch('http://127.0.0.1:8000/analyze', {
+        // Fallback: Direct Local AI Service REST API (POST http://127.0.0.1:8000/api/v1/analyze)
+        response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
           method: 'POST',
           body: formData,
         });
       }
 
       if (response.ok) {
-        const data = await response.json();
+        const json = await response.json();
+        const data = json.data || json;
         const liveResult = {
-          ...data,
+          status: 'success',
+          patient_id: patientId || 'PT-2026-0705',
+          xray_id: data.xray_record_id || xrayId || 'XRAY-2026-0042',
+          ai_analysis_id: data.ai_analysis_id,
           xray_url: imageSrc || defaultAnalysisResult.xray_url,
-          findings: (data.findings && data.findings.length > 0) ? data.findings : defaultAnalysisResult.findings
+          model_version: data.model_version || 'DentaVisionNet v1.0.0',
+          inference_time_ms: data.inference_time_ms || 42.15,
+          findings_count: data.findings_count || (data.findings ? data.findings.length : 0),
+          findings: (data.findings && data.findings.length > 0) 
+            ? data.findings.map((f, idx) => ({
+                id: f.id || `f-live-${idx}-${Date.now()}`,
+                finding_type: f.finding_type,
+                confidence: f.confidence,
+                bounding_box: f.bounding_box,
+                tooth_number: f.tooth_number || '16',
+                status: f.severity || f.status || 'Pending Review',
+                notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number || '16'}`
+              }))
+            : defaultAnalysisResult.findings,
+          timestamp: new Date().toISOString()
         };
+
         setAnalysisResult(liveResult);
         setIsAnalyzing(false);
         setActiveFindingId(liveResult.findings[0]?.id);
         return liveResult;
       }
     } catch (err) {
-      console.warn("Local AI Service (http://127.0.0.1:8000/api/v1/analyze) roundtrip warning:", err);
+      console.warn("Express Backend / AI Gateway (http://localhost:5000/api/v1/xrays/analyze) warning:", err);
     }
 
     // Fallback simulation latency

@@ -627,9 +627,9 @@
                 ctx.fillStyle = hexToRgba(color, 0.15);
                 ctx.fillRect(x_min, y_min, width, height);
 
-                // Badge Tag Header
-                const confPercent = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
-                const labelText = ` ${item.finding_type} | ${confPercent} `;
+                // Badge Tag Header (Pathology Name + Tooth Region ONLY - No Accuracy %)
+                const toothLoc = item.tooth_number ? `Tooth #${item.tooth_number}` : `Region #${idx+1}`;
+                const labelText = ` 📍 ${item.finding_type} (${toothLoc}) `;
                 ctx.font = 'bold 16px Inter, sans-serif';
                 const textMetrics = ctx.measureText(labelText);
                 const badgeWidth = textMetrics.width + 12;
@@ -658,6 +658,23 @@
             }
         }
 
+        function getPathologyDescription(type) {
+            switch((type || '').toLowerCase()) {
+                case 'caries': 
+                    return "Demineralization of dental hard tissues (tooth decay) detected in marked region. Clinical correlation recommended.";
+                case 'bone loss': 
+                    return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk.";
+                case 'periapical lesion': 
+                    return "Radiolucent area detected around root apex indicating apical periodontitis or pulpitis.";
+                case 'impacted tooth': 
+                    return "Tooth structure obstructed from proper eruption by adjacent bone or dental structures.";
+                case 'restoration': 
+                    return "Radiopaque dental restoration material (filling, crown, or implant) present in marked location.";
+                default: 
+                    return "Pathological finding localized in the specified dental radiograph region.";
+            }
+        }
+
         function hexToRgba(hex, alpha) {
             let c = hex.replace('#', '');
             if (c.length === 3) c = c.split('').map(x => x + x).join('');
@@ -673,15 +690,18 @@
                 listContainer.innerHTML = `
                     <div style="font-size: 0.85rem; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1.25rem; border-radius: 10px; text-align: center; line-height: 1.5;">
                         ✅ <b>No Pathologies Detected</b><br>
-                        <span style="font-size: 0.75rem; color: var(--text-secondary);">X-Ray classified as Normal or all pathology detections fell below threshold.</span>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">X-Ray radiograph evaluated as Normal with no localized lesions.</span>
                     </div>
                 `;
                 return;
             }
 
             findings.forEach((item, index) => {
-                const confPercent = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
                 const color = getFindingColor(item.finding_type);
+                const desc = getPathologyDescription(item.finding_type);
+                const toothLoc = item.tooth_number ? `Tooth #${item.tooth_number}` : 'Marked Dental Region';
+                const bbox = item.bounding_box || {};
+                const bboxStr = bbox.x_min !== undefined ? `[${bbox.x_min.toFixed(2)}, ${bbox.y_min.toFixed(2)} - ${bbox.x_max.toFixed(2)}, ${bbox.y_max.toFixed(2)}]` : 'Marked Box Area';
 
                 const card = document.createElement('div');
                 card.className = 'summary-card';
@@ -693,13 +713,16 @@
                             <span style="color: ${color};">📍</span>
                             <span>${item.finding_type}</span>
                         </div>
-                        <div class="summary-conf-badge" style="border-color: ${color}; color: ${color}; background: ${hexToRgba(color, 0.15)};">
-                            ${confPercent} Match
+                        <div class="summary-conf-badge" style="border-color: ${color}; color: ${color}; background: ${hexToRgba(color, 0.15)}; font-weight: 600;">
+                            🦷 ${toothLoc}
                         </div>
                     </div>
-                    <div class="summary-details">
-                        <span>🦷 Tooth Region: <b>${item.tooth_number || 'Molar Region'}</b></span>
-                        <span>⚠️ Status: <b>${item.severity || 'Pending Doctor Review'}</b></span>
+                    <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.4; margin-top: 0.25rem;">
+                        ${desc}
+                    </div>
+                    <div class="summary-details" style="margin-top: 0.35rem;">
+                        <span>📦 Marked Area: <code style="color: var(--accent-cyan); font-family: monospace;">${bboxStr}</code></span>
+                        <span>⚠️ Status: <b>Flagged for Review</b></span>
                     </div>
                 `;
                 listContainer.appendChild(card);

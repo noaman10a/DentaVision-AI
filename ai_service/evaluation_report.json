@@ -1,7 +1,7 @@
 {
   "model_version": "v1.0.0",
   "weights_path": "ai_service/model/checkpoints/best_model.pt",
-  "test_samples_count": 2,
+  "test_samples_count": 1620,
   "classes": [
     "Caries",
     "Periapical Lesion",
@@ -15,10 +15,10 @@
     "macro_precision": 0.1667,
     "macro_recall": 0.1667,
     "macro_f1": 0.1667,
-    "avg_latency_ms": 17.76,
+    "avg_latency_ms": 17.63,
     "confusion_matrix": [
       [
-        2,
+        1620,
         0,
         0,
         0,
@@ -67,5 +67,5 @@
       ]
     ]
   },
-  "timestamp": "2026-08-17T17:15:37Z"
+  "timestamp": "2026-08-17T17:48:56Z"
 }

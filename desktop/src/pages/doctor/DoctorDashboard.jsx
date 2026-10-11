@@ -36,13 +36,13 @@ export const DoctorDashboard = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(139, 92, 246, 0.12) 100%)',
+          background: 'var(--primary-teal-glow)',
           border: '1px solid var(--border-accent)',
         }}
       >
         <div>
-          <div className="badge badge-success" style={{ marginBottom: '8px' }}>Senior Dental Surgeon</div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: '700' }}>
+          <div className="badge badge-info" style={{ marginBottom: '8px' }}>Senior Dental Surgeon</div>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Doctor Clinical Workstation
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -86,12 +86,12 @@ export const DoctorDashboard = () => {
             <div key={i} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>{stat.title}</span>
-                <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'var(--btn-secondary-bg)' }}>
                   <Icon size={20} color={stat.color} />
                 </div>
               </div>
               <div>
-                <h3 style={{ fontSize: '28px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff' }}>{stat.count}</h3>
+                <h3 style={{ fontSize: '28px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>{stat.count}</h3>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{stat.sub}</p>
               </div>
             </div>
@@ -104,7 +104,7 @@ export const DoctorDashboard = () => {
         {/* Waiting Patients List */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Patient Consultation Queue</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Patient Consultation Queue</h3>
             <span className="badge badge-info">{patients.length} Active Patients</span>
           </div>
 
@@ -117,16 +117,22 @@ export const DoctorDashboard = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '14px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  backgroundColor: 'var(--btn-secondary-bg)',
                   borderRadius: '10px',
                   border: '1px solid var(--border-glass)',
+                  transition: 'var(--transition-theme)',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{p.name}</span>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{p.name}</span>
                     <span style={{ fontSize: '12px', color: 'var(--primary-teal)', fontWeight: '600' }}>({p.id})</span>
-                    <span className="badge badge-warning">{p.status}</span>
+                    <span className={`badge ${
+                      p.status === 'Awaiting Review' ? 'badge-warning' :
+                      p.status === 'Waiting' ? 'badge-info' : 'badge-success'
+                    }`}>
+                      {p.status}
+                    </span>
                   </div>
                   <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                     Last Visit: {p.lastVisit} • Medical: {p.medicalHistory?.join(', ') || 'None noted'}
@@ -136,10 +142,11 @@ export const DoctorDashboard = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => { selectPatientById(p.id); navigate('/workspace'); }}
-                    className="btn-primary"
-                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                    className="btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '12px', borderColor: 'var(--primary-teal)', color: 'var(--primary-teal)' }}
                   >
-                    Open Workspace
+                    <span>Open Workspace</span>
+                    <ArrowRight size={14} />
                   </button>
                 </div>
               </div>
@@ -151,7 +158,7 @@ export const DoctorDashboard = () => {
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid var(--border-accent)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Sparkles size={20} color="var(--primary-teal)" />
-            <h3 style={{ fontSize: '16px', fontWeight: '600' }}>AI Analysis Ready</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>AI Analysis Ready</h3>
           </div>
 
           <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', height: '160px' }}>

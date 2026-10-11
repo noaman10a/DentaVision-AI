@@ -29,7 +29,7 @@ export const ClinicalVisitScreen = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Stethoscope size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Clinical Visit Consultation Entry
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -113,7 +113,7 @@ export const ClinicalVisitScreen = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {/* Follow up date */}
           <div className="glass-card">
-            <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
               <Calendar size={16} color="var(--primary-teal)" />
               <span>Recommended Follow-up</span>
             </h4>
@@ -127,15 +127,15 @@ export const ClinicalVisitScreen = () => {
 
           {/* Previous Visit Summary */}
           <div className="glass-card">
-            <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
               <History size={16} color="var(--secondary-cyan)" />
               <span>Previous Visit Summary</span>
             </h4>
             {activePatient?.visits?.length > 0 ? (
               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <p><strong>Date:</strong> {activePatient.visits[0].date}</p>
-                <p><strong>Doctor:</strong> {activePatient.visits[0].doctor}</p>
-                <p><strong>Diagnosis:</strong> {activePatient.visits[0].diagnosis}</p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>Date:</strong> {activePatient.visits[0].date}</p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>Doctor:</strong> {activePatient.visits[0].doctor}</p>
+                <p><strong style={{ color: 'var(--text-primary)' }}>Diagnosis:</strong> {activePatient.visits[0].diagnosis}</p>
               </div>
             ) : (
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No previous visit records logged.</p>

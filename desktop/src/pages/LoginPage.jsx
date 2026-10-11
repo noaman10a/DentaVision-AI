@@ -61,8 +61,8 @@ export const LoginPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'radial-gradient(ellipse at 50% 30%, rgba(20, 184, 166, 0.12) 0%, transparent 60%), #0b0f19',
         padding: '20px',
+        transition: 'var(--transition-theme)',
       }}
     >
       <div
@@ -71,7 +71,7 @@ export const LoginPage = () => {
           width: '100%',
           maxWidth: '460px',
           padding: '36px',
-          boxShadow: 'var(--shadow-lg), 0 0 40px rgba(20, 184, 166, 0.15)',
+          boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--border-glass)',
         }}
@@ -83,7 +83,7 @@ export const LoginPage = () => {
               width: '54px',
               height: '54px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, var(--primary-teal), var(--secondary-cyan))',
+              background: 'var(--primary-teal)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -93,7 +93,7 @@ export const LoginPage = () => {
           >
             <Sparkles size={30} color="#fff" />
           </div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: '700', color: '#fff', letterSpacing: '-0.5px' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
             DentaVision <span style={{ color: 'var(--primary-teal)' }}>AI</span>
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -112,8 +112,8 @@ export const LoginPage = () => {
                 padding: '8px',
                 borderRadius: '8px',
                 border: selectedRole === 'reception' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'rgba(255, 255, 255, 0.03)',
-                color: selectedRole === 'reception' ? '#fff' : 'var(--text-secondary)',
+                backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
+                color: selectedRole === 'reception' ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -134,8 +134,8 @@ export const LoginPage = () => {
                 padding: '8px',
                 borderRadius: '8px',
                 border: selectedRole === 'doctor' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'doctor' ? 'var(--primary-teal-glow)' : 'rgba(255, 255, 255, 0.03)',
-                color: selectedRole === 'doctor' ? '#fff' : 'var(--text-secondary)',
+                backgroundColor: selectedRole === 'doctor' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
+                color: selectedRole === 'doctor' ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -156,8 +156,8 @@ export const LoginPage = () => {
                 padding: '8px',
                 borderRadius: '8px',
                 border: selectedRole === 'admin' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'admin' ? 'var(--primary-teal-glow)' : 'rgba(255, 255, 255, 0.03)',
-                color: selectedRole === 'admin' ? '#fff' : 'var(--text-secondary)',
+                backgroundColor: selectedRole === 'admin' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
+                color: selectedRole === 'admin' ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
@@ -257,7 +257,7 @@ export const LoginPage = () => {
           <div className="glass-card fade-in" style={{ width: '100%', maxWidth: '400px', padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <KeyRound size={22} color="var(--primary-teal)" />
-              <h3 style={{ fontSize: '18px', fontWeight: '600' }}>Reset Password</h3>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)' }}>Reset Password</h3>
             </div>
 
             {forgotSent ? (

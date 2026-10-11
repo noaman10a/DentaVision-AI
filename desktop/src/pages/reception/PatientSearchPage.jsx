@@ -12,7 +12,7 @@ export const PatientSearchPage = () => {
       {/* Header Bar */}
       <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Patient Directory & Search Engine
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
@@ -41,7 +41,7 @@ export const PatientSearchPage = () => {
         {patients.length === 0 ? (
           <div className="glass-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px' }}>
             <ShieldAlert size={40} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
-            <h3 style={{ fontSize: '16px', fontWeight: '600' }}>No Patient Records Found</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>No Patient Records Found</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
               No matches found for query "{searchQuery}". Try searching by ID or register a new patient.
             </p>
@@ -58,7 +58,7 @@ export const PatientSearchPage = () => {
                   <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary-teal)', letterSpacing: '0.5px' }}>
                     {patient.id}
                   </span>
-                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginTop: '2px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginTop: '2px' }}>
                     {patient.name}
                   </h3>
                 </div>

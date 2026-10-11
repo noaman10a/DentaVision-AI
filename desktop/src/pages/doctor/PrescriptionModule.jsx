@@ -31,7 +31,6 @@ export const PrescriptionModule = () => {
 
   const [isRecording, setIsRecording] = useState(false);
   const [voiceNote, setVoiceNote] = useState('Take medications strictly after meals. Rinse with Chlorhexidine twice daily.');
-  const [savedMsg, setSavedMsg] = useState('');
 
   const addMedication = () => {
     if (!currentMed.medicine) return;
@@ -65,7 +64,7 @@ export const PrescriptionModule = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Pill size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Rx Prescription Builder
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -85,7 +84,7 @@ export const PrescriptionModule = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Medication Builder Form */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <h4 style={{ fontSize: '15px', fontWeight: '600' }}>Add Medication Entry</h4>
+          <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>Add Medication Entry</h4>
 
           <div>
             <label className="input-label">Medicine Name</label>
@@ -178,7 +177,7 @@ export const PrescriptionModule = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Prescription List Card */}
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ fontSize: '15px', fontWeight: '600' }}>Current Prescription List</h4>
+            <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>Current Prescription List</h4>
             {prescriptions.length === 0 ? (
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No medications added yet.</p>
             ) : (
@@ -190,13 +189,13 @@ export const PrescriptionModule = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '10px 14px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    backgroundColor: 'var(--btn-secondary-bg)',
                     borderRadius: '8px',
                     border: '1px solid var(--border-glass)',
                   }}
                 >
                   <div>
-                    <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>
+                    <h5 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
                       {p.medicine} <span style={{ color: 'var(--primary-teal)' }}>({p.strength})</span>
                     </h5>
                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -218,7 +217,7 @@ export const PrescriptionModule = () => {
           {/* Voice Instructions Module */}
           <div className="glass-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Volume2 size={16} color="var(--primary-teal)" />
                 <span>Voice Instructions (Dictation)</span>
               </h4>

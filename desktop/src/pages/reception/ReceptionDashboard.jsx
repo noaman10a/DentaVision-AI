@@ -7,13 +7,9 @@ import {
   Search, 
   Calendar, 
   Clock, 
-  FileText, 
   CreditCard, 
-  FolderOpen, 
-  Activity, 
   Sparkles,
-  ArrowRight,
-  Plus
+  ArrowRight
 } from 'lucide-react';
 import { PatientRegistrationModal } from './PatientRegistrationModal';
 
@@ -44,13 +40,13 @@ export const ReceptionDashboard = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%)',
+          background: 'var(--primary-teal-glow)',
           border: '1px solid var(--border-accent)',
         }}
       >
         <div>
           <div className="badge badge-info" style={{ marginBottom: '8px' }}>Reception Desk Lead</div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: '700' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Welcome to Reception Control
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
@@ -102,12 +98,12 @@ export const ReceptionDashboard = () => {
             <div key={i} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>{stat.title}</span>
-                <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ padding: '8px', borderRadius: '8px', backgroundColor: 'var(--btn-secondary-bg)' }}>
                   <Icon size={20} color={stat.color} />
                 </div>
               </div>
               <div>
-                <h3 style={{ fontSize: '28px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: '#fff' }}>{stat.count}</h3>
+                <h3 style={{ fontSize: '28px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>{stat.count}</h3>
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{stat.change}</p>
               </div>
             </div>
@@ -120,7 +116,7 @@ export const ReceptionDashboard = () => {
         {/* Today's Check-in Table */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Active Reception Patient Queue</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Active Reception Patient Queue</h3>
             <button
               onClick={() => navigate('/reception/search')}
               style={{ background: 'none', border: 'none', color: 'var(--primary-teal)', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -143,9 +139,9 @@ export const ReceptionDashboard = () => {
               </thead>
               <tbody>
                 {patients.map((p) => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-glass)' }}>
                     <td style={{ padding: '12px', fontWeight: '600', color: 'var(--primary-teal)' }}>{p.id}</td>
-                    <td style={{ padding: '12px', fontWeight: '500' }}>{p.name}</td>
+                    <td style={{ padding: '12px', fontWeight: '500', color: 'var(--text-primary)' }}>{p.name}</td>
                     <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{p.phone}</td>
                     <td style={{ padding: '12px' }}>
                       <span className={`badge ${
@@ -176,16 +172,17 @@ export const ReceptionDashboard = () => {
 
         {/* Recent Clinic Activity */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Recent Reception Feed</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Recent Reception Feed</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {recentActivities.map((act) => (
               <div
                 key={act.id}
                 style={{
                   padding: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  backgroundColor: 'var(--btn-secondary-bg)',
                   borderRadius: '8px',
                   border: '1px solid var(--border-glass)',
+                  transition: 'var(--transition-theme)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>

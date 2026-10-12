@@ -27,7 +27,7 @@ export const ReportModule = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <FileText size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Diagnostic Report Generator
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -60,7 +60,7 @@ export const ReportModule = () => {
       <div
         className="glass-card"
         style={{
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          backgroundColor: 'var(--bg-dark-card)',
           padding: '32px',
           display: 'flex',
           flexDirection: 'column',
@@ -79,21 +79,21 @@ export const ReportModule = () => {
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>RADIOLOGY DIAGNOSTIC REPORT</p>
+            <p style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>RADIOLOGY DIAGNOSTIC REPORT</p>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Date: {new Date().toLocaleDateString()}</p>
           </div>
         </div>
 
         {/* Patient & Exam Metadata */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '16px', borderRadius: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', backgroundColor: 'var(--btn-secondary-bg)', padding: '16px', borderRadius: '8px' }}>
           <div>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Patient Name</p>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{activePatient?.name}</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{activePatient?.name}</p>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Patient ID: {activePatient?.id}</p>
           </div>
           <div>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Attending Surgeon</p>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Dr. Twahir Mohammed</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>Dr. Twahir Mohammed</p>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Model Engine: {analysisResult?.model_version}</p>
           </div>
         </div>
@@ -106,9 +106,9 @@ export const ReportModule = () => {
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {analysisResult?.findings.map((f) => (
-              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '6px', borderLeft: '3px solid var(--primary-teal)' }}>
+              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: 'var(--btn-secondary-bg)', borderRadius: '6px', borderLeft: '3px solid var(--primary-teal)' }}>
                 <div>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>Tooth #{f.tooth_number} - {f.finding_type}</span>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Tooth #{f.tooth_number} - {f.finding_type}</span>
                   <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{f.notes}</p>
                 </div>
                 <span className="badge badge-success" style={{ fontSize: '11px' }}>
@@ -121,7 +121,7 @@ export const ReportModule = () => {
 
         {/* Doctor Impression Edit Area */}
         <div>
-          <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#fff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Edit3 size={16} color="var(--primary-teal)" />
             <span>Doctor Impression & Clinical Directives</span>
           </h4>

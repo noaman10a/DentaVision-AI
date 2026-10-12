@@ -25,14 +25,16 @@ import {
 export const PatientWorkspace = () => {
   const { activePatient } = usePatients();
   const { runAIAnalysis, isAnalyzing } = useAI();
-  const [activeTab, setActiveTab] = useState('xrays'); // 'overview', 'visits', 'history', 'xrays', 'documents', 'reports', 'timeline'
+  const [activeTab, setActiveTab] = useState('xrays');
 
   if (!activePatient) {
     return (
       <div className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
         <User size={40} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
-        <h3>No Patient Workspace Selected</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Select a patient from search or dashboard to launch workspace.</p>
+        <h3 style={{ color: 'var(--text-primary)' }}>No Patient Workspace Selected</h3>
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
+          Select a patient from search or dashboard to launch workspace.
+        </p>
       </div>
     );
   }
@@ -48,7 +50,7 @@ export const PatientWorkspace = () => {
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: '16px',
-          background: 'linear-gradient(135deg, rgba(19, 27, 46, 0.9) 0%, rgba(30, 41, 59, 0.7) 100%)',
+          background: 'var(--primary-teal-glow)',
           border: '1px solid var(--border-accent)',
         }}
       >
@@ -72,7 +74,7 @@ export const PatientWorkspace = () => {
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: '#fff' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)' }}>
                 {activePatient.name}
               </h2>
               <span className="badge badge-info">{activePatient.id}</span>
@@ -126,7 +128,7 @@ export const PatientWorkspace = () => {
                 padding: '10px 16px',
                 border: 'none',
                 borderBottom: isActive ? '2px solid var(--primary-teal)' : '2px solid transparent',
-                backgroundColor: isActive ? 'rgba(20, 184, 166, 0.1)' : 'transparent',
+                backgroundColor: isActive ? 'var(--primary-teal-glow)' : 'transparent',
                 color: isActive ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 borderRadius: '8px 8px 0 0',
                 cursor: 'pointer',
@@ -150,16 +152,16 @@ export const PatientWorkspace = () => {
         {activeTab === 'overview' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div className="glass-card">
-              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Demographics & Contact Info</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <p><strong>Address:</strong> {activePatient.address}</p>
-                <p><strong>Email:</strong> {activePatient.email || 'None'}</p>
-                <p><strong>Emergency Contact:</strong> {activePatient.emergencyContact}</p>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>Demographics & Contact Info</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
+                <p><strong style={{ color: 'var(--text-secondary)' }}>Address:</strong> {activePatient.address}</p>
+                <p><strong style={{ color: 'var(--text-secondary)' }}>Email:</strong> {activePatient.email || 'None'}</p>
+                <p><strong style={{ color: 'var(--text-secondary)' }}>Emergency Contact:</strong> {activePatient.emergencyContact}</p>
               </div>
             </div>
 
             <div className="glass-card">
-              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Medical Flags & Allergies</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>Medical Flags & Allergies</h3>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {activePatient.medicalHistory?.map((med, i) => (
                   <span key={i} className="badge badge-warning" style={{ fontSize: '12px', padding: '6px 12px' }}>
@@ -175,7 +177,7 @@ export const PatientWorkspace = () => {
         {activeTab === 'prescriptions' && <PrescriptionModule />}
         {activeTab === 'history' && (
           <div className="glass-card">
-            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>Detailed Dental & Medical History</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>Detailed Dental & Medical History</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
               Comprehensive systemic conditions, past restorations, root canal treatments, and periodontal records for {activePatient.name}.
             </p>

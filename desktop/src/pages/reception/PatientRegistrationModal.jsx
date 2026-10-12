@@ -108,7 +108,7 @@ export const PatientRegistrationModal = ({ onClose }) => {
             <UserPlus size={24} color="var(--primary-teal)" />
           </div>
           <div>
-            <h3 style={{ fontSize: '20px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               New Patient Registration
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>

@@ -1,13 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../context/AIContext';
-import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders, Upload, RefreshCw } from 'lucide-react';
 
 export const XRayViewer = () => {
-  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter } = useAI();
+  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, runAIAnalysis } = useAI();
   const [zoom, setZoom] = useState(1);
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [showOverlays, setShowOverlays] = useState(true);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      runAIAnalysis(`XRAY-${Date.now().toString().slice(-4)}`, objectUrl, file);
+    }
+  };
+
+  const handleResetSample = () => {
+    runAIAnalysis('XRAY-2026-0042', '/sample_xray.png', null);
+  };
 
   if (!analysisResult) return null;
 
@@ -31,6 +44,32 @@ export const XRayViewer = () => {
 
         {/* Zoom & Image Adjust Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Upload custom patient X-ray image"
+          >
+            <Upload size={14} color="var(--primary-teal)" />
+            <span>Upload X-ray</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+
+          <button
+            onClick={handleResetSample}
+            className="btn-secondary"
+            style={{ padding: '6px 10px', fontSize: '12px' }}
+            title="Reload verified sample radiograph"
+          >
+            <RefreshCw size={14} />
+          </button>
+
           <button onClick={() => setZoom(prev => Math.min(prev + 0.2, 2.5))} className="btn-secondary" style={{ padding: '6px 10px' }}>
             <ZoomIn size={16} />
           </button>
@@ -49,6 +88,7 @@ export const XRayViewer = () => {
               fontSize: '12px',
               backgroundColor: showOverlays ? 'var(--primary-teal-glow)' : 'transparent',
               borderColor: showOverlays ? 'var(--primary-teal)' : 'var(--border-glass)',
+              color: showOverlays ? 'var(--primary-teal)' : 'var(--text-primary)',
             }}
           >
             <Layers size={14} />
@@ -124,7 +164,7 @@ export const XRayViewer = () => {
                   width,
                   height,
                   border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
-                  backgroundColor: isSelected ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.08)',
+                  backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.1)',
                   cursor: 'pointer',
                   boxShadow: isSelected ? `0 0 16px ${statusColor}` : 'none',
                   borderRadius: '4px',
@@ -164,7 +204,7 @@ export const XRayViewer = () => {
       {activeFinding && (
         <div
           style={{
-            backgroundColor: 'rgba(30, 41, 59, 0.6)',
+            backgroundColor: 'var(--btn-secondary-bg)',
             borderRadius: 'var(--radius-md)',
             padding: '14px',
             border: '1px solid var(--border-glass)',
@@ -173,11 +213,12 @@ export const XRayViewer = () => {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '12px',
+            transition: 'var(--transition-theme)',
           }}
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
                 Selected: Tooth #{activeFinding.tooth_number} - {activeFinding.finding_type}
               </h4>
               <span className={`badge ${

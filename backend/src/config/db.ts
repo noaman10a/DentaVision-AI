@@ -13,8 +13,6 @@ import { env } from "./env";
 
 const pool = new pg.Pool({ connectionString: env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
-
-// Extend the global object to prevent duplicate client instantiations in development
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma = globalForPrisma.prisma || new PrismaClient({ adapter });

@@ -7,7 +7,7 @@ const defaultAnalysisResult = {
   status: 'success',
   patient_id: 'PT-2026-0705',
   xray_id: 'XRAY-2026-0042',
-  xray_url: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1000&auto=format&fit=crop&q=80',
+  xray_url: '/sample_xray.png',
   model_version: 'DentaVisionNet v1.0.0',
   inference_time_ms: 42.15,
   findings_count: 2,

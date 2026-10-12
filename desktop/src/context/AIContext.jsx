@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { analyzeXrayApi } from '../services/api';
 
 const AIContext = createContext();
 
@@ -142,7 +143,7 @@ export const AIProvider = ({ children }) => {
     const simulatedResult = {
       ...defaultAnalysisResult,
       xray_id: xrayId || `XRAY-${Math.floor(1000 + Math.random() * 9000)}`,
-      xray_url: imageSrc || defaultAnalysisResult.xray_url,
+      xray_url: imageSrc || analysisResult.xray_url,
       timestamp: new Date().toISOString(),
       findings: defaultAnalysisResult.findings.map(f => ({
         ...f,

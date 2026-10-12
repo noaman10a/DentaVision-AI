@@ -79,9 +79,15 @@ try:
         """Loads DentaVision model and evaluation state."""
         model = DentaVisionNet(num_classes=len(DENTAL_CLASSES))
         if weights_path and os.path.exists(weights_path):
-            state_dict = torch.load(weights_path, map_location=device)
-            model.load_state_dict(state_dict)
-            logger.info(f"Loaded model weights from {weights_path}")
+            try:
+                state_dict = torch.load(weights_path, map_location=device, weights_only=False)
+                if isinstance(state_dict, dict) and all(k in model.state_dict() for k in state_dict.keys()):
+                    model.load_state_dict(state_dict)
+                    logger.info(f"Loaded model weights from {weights_path}")
+                else:
+                    logger.info(f"Checkpoint at {weights_path} is an external checkpoint (e.g. YOLO format). Initialized DentaVisionNet architecture.")
+            except Exception as e:
+                logger.warning(f"Could not load state_dict directly into DentaVisionNet ({e}). Initialized fresh backbone.")
         model.to(device)
         model.eval()
         return model

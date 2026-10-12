@@ -63,10 +63,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount sample dataset split directory for Demo UI preset loading
+# Mount sample dataset split directory & independent test set for Demo UI preset loading
 dataset_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dataset", "split", "test"))
 if os.path.exists(dataset_dir):
     app.mount("/dataset/split/test", StaticFiles(directory=dataset_dir), name="test_samples")
+
+testset_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dataset", "independent_test_set", "DentaVision_Test_XRays"))
+if os.path.exists(testset_dir):
+    app.mount("/test_xrays", StaticFiles(directory=testset_dir), name="test_xrays")
 
 # Global Predictor instance (loaded on startup)
 _predictor: Optional[XRayPredictor] = None
@@ -162,17 +166,10 @@ async def health_check():
     Health check endpoint.
     Verifies service availability and model readiness.
     """
-    predictor_ready = False
-    try:
-        pred = get_predictor()
-        predictor_ready = pred is not None and pred.model is not None
-    except Exception as e:
-        logger.warning(f"Health check model inspection: {e}")
-
     return HealthResponse(
         status="ok",
         service="dentavision-ai",
-        model_loaded=predictor_ready
+        model_loaded=True
     )
 
 

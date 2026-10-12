@@ -3,7 +3,7 @@ import { useAI } from '../../context/AIContext';
 import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders, Upload, RefreshCw } from 'lucide-react';
 
 export const XRayViewer = () => {
-  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, runAIAnalysis } = useAI();
+  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, runAIAnalysis, isAnalyzing } = useAI();
   const [zoom, setZoom] = useState(1);
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
@@ -14,7 +14,7 @@ export const XRayViewer = () => {
     const file = e.target.files?.[0];
     if (file) {
       const objectUrl = URL.createObjectURL(file);
-      runAIAnalysis(`XRAY-${Date.now().toString().slice(-4)}`, objectUrl, file);
+      runAIAnalysis(file.name || `XRAY-${Date.now().toString().slice(-4)}`, objectUrl, file);
     }
   };
 
@@ -44,15 +44,6 @@ export const XRayViewer = () => {
 
         {/* Zoom & Image Adjust Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            title="Upload custom patient X-ray image"
-          >
-            <Upload size={14} color="var(--primary-teal)" />
-            <span>Upload X-ray</span>
-          </button>
           <input
             type="file"
             ref={fileInputRef}
@@ -60,12 +51,23 @@ export const XRayViewer = () => {
             accept="image/*"
             style={{ display: 'none' }}
           />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-primary"
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            disabled={isAnalyzing}
+            title="Upload custom patient X-ray image"
+          >
+            <Upload size={14} />
+            <span>{isAnalyzing ? 'Analyzing...' : 'Upload OPG X-Ray'}</span>
+          </button>
 
           <button
             onClick={handleResetSample}
             className="btn-secondary"
             style={{ padding: '6px 10px', fontSize: '12px' }}
             title="Reload verified sample radiograph"
+            disabled={isAnalyzing}
           >
             <RefreshCw size={14} />
           </button>

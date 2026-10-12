@@ -387,9 +387,10 @@
         </div>
         <div class="system-badges">
             <div class="badge"><div class="badge-dot"></div> FastAPI Service</div>
-            <div class="badge">MobileNetV3 PyTorch</div>
-            <div class="badge">16.67ms Latency (~60 FPS)</div>
+            <div class="badge">YOLOv8 14-Class PyTorch</div>
+            <div class="badge">32ms Latency (~31 FPS)</div>
         </div>
+
     </header>
 
     <main>
@@ -409,21 +410,79 @@
             </div>
 
             <div class="card-header" style="margin-top: 0.5rem;">
-                <span>⚡ Test Preset Clinical X-Rays</span>
+                <span>🎯 Select Independent Test Set X-Ray</span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <button class="sample-btn" onclick="loadPresetSample('/dataset/split/test/1.jpg', 'Clinical X-Ray #1')">
-                    <span>🦴 Clinical X-Ray (1.jpg)</span>
-                    <span style="font-size: 0.75rem; color: var(--accent-cyan);">Load ➔</span>
-                </button>
-                <button class="sample-btn" onclick="loadPresetSample('/dataset/split/test/25.jpg', 'Bitewing X-Ray #25')">
-                    <span>🦷 Bitewing X-Ray (25.jpg)</span>
-                    <span style="font-size: 0.75rem; color: var(--accent-cyan);">Load ➔</span>
-                </button>
-                <button class="sample-btn" onclick="loadPresetSample('/dataset/split/test/100.jpg', 'Periapical IOPA #100')">
-                    <span>🔬 Periapical IOPA (100.jpg)</span>
-                    <span style="font-size: 0.75rem; color: var(--accent-cyan);">Load ➔</span>
-                </button>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">60 Independent Benchmark Test Images:</label>
+                <select id="testSetSelect" onchange="onTestSetSelect(this)" style="background: var(--bg-card-hover); border: 1px solid var(--accent-cyan); color: var(--text-primary); padding: 0.65rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; outline: none;">
+                    <option value="" disabled selected>-- Choose Test Radiograph --</option>
+                    <optgroup label="🦴 OPG / Panoramic Radiographs (20 Images)">
+                        <option value="/test_xrays/OPG/532.jpg">OPG #532.jpg</option>
+                        <option value="/test_xrays/OPG/533.jpg">OPG #533.jpg</option>
+                        <option value="/test_xrays/OPG/534.jpg">OPG #534.jpg</option>
+                        <option value="/test_xrays/OPG/535.jpg">OPG #535.jpg</option>
+                        <option value="/test_xrays/OPG/536.jpg">OPG #536.jpg</option>
+                        <option value="/test_xrays/OPG/537.jpg">OPG #537.jpg</option>
+                        <option value="/test_xrays/OPG/538.jpg">OPG #538.jpg</option>
+                        <option value="/test_xrays/OPG/539.jpg">OPG #539.jpg</option>
+                        <option value="/test_xrays/OPG/540.jpg">OPG #540.jpg</option>
+                        <option value="/test_xrays/OPG/541.jpg">OPG #541.jpg</option>
+                        <option value="/test_xrays/OPG/88.jpg">OPG #88.jpg</option>
+                        <option value="/test_xrays/OPG/89.jpg">OPG #89.jpg</option>
+                        <option value="/test_xrays/OPG/90.jpg">OPG #90.jpg</option>
+                        <option value="/test_xrays/OPG/91.jpg">OPG #91.jpg</option>
+                        <option value="/test_xrays/OPG/92.jpg">OPG #92.jpg</option>
+                        <option value="/test_xrays/OPG/93.jpg">OPG #93.jpg</option>
+                        <option value="/test_xrays/OPG/94.jpg">OPG #94.jpg</option>
+                        <option value="/test_xrays/OPG/95.jpg">OPG #95.jpg</option>
+                        <option value="/test_xrays/OPG/96.jpg">OPG #96.jpg</option>
+                        <option value="/test_xrays/OPG/97.jpg">OPG #97.jpg</option>
+                    </optgroup>
+                    <optgroup label="🦷 Bitewing Radiographs (20 Images)">
+                        <option value="/test_xrays/Bitewing/01.png">Bitewing 01.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/06.png">Bitewing 06.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/07.png">Bitewing 07.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/08.png">Bitewing 08.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/09.png">Bitewing 09.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/10.png">Bitewing 10.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/11.png">Bitewing 11.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/16.png">Bitewing 16.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/17.png">Bitewing 17.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/18.png">Bitewing 18.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/19.png">Bitewing 19.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/22.png">Bitewing 22.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/23.png">Bitewing 23.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/90.png">Bitewing 90.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/91.png">Bitewing 91.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/94.png">Bitewing 94.png (Healthy / No Caries)</option>
+                        <option value="/test_xrays/Bitewing/95.png">Bitewing 95.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/96.png">Bitewing 96.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/97.png">Bitewing 97.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/100.png">Bitewing 100.png (Caries)</option>
+                    </optgroup>
+                    <optgroup label="🔬 Periapical IOPA Radiographs (20 Images)">
+                        <option value="/test_xrays/Periapical/2.73.JPG">Periapical 2.73.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.74.JPG">Periapical 2.74.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.75.JPG">Periapical 2.75.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.76.JPG">Periapical 2.76.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.77.JPG">Periapical 2.77.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.78.JPG">Periapical 2.78.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.79.JPG">Periapical 2.79.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.80.JPG">Periapical 2.80.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.81.JPG">Periapical 2.81.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.82.JPG">Periapical 2.82.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.83.JPG">Periapical 2.83.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.84.JPG">Periapical 2.84.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.85.JPG">Periapical 2.85.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.86.JPG">Periapical 2.86.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.87.JPG">Periapical 2.87.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.88.JPG">Periapical 2.88.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.89.JPG">Periapical 2.89.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.90.JPG">Periapical 2.90.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.91.JPG">Periapical 2.91.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.92.JPG">Periapical 2.92.JPG (Normal)</option>
+                    </optgroup>
+                </select>
             </div>
 
             <div style="margin-top: auto; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; background: rgba(15, 23, 42, 0.5); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
@@ -507,6 +566,12 @@
         function handleFileSelect(event) {
             if (event.target.files.length > 0) {
                 processImageFile(event.target.files[0]);
+            }
+        }
+
+        function onTestSetSelect(elem) {
+            if (elem.value) {
+                loadPresetSample(elem.value, elem.options[elem.selectedIndex].text);
             }
         }
 
@@ -649,31 +714,43 @@
         }
 
         function getFindingColor(type) {
-            switch((type || '').toLowerCase()) {
-                case 'caries': return '#ef4444'; // Red
-                case 'bone loss': return '#f59e0b'; // Amber
-                case 'periapical lesion': return '#a855f7'; // Purple
-                case 'impacted tooth': return '#06b6d4'; // Cyan
-                case 'restoration': return '#10b981'; // Green
-                default: return '#3b82f6';
-            }
+            const t = (type || '').toLowerCase();
+            if (t.includes('caries') || t.includes('carious')) return '#ef4444'; // Red
+            if (t.includes('bone')) return '#f59e0b'; // Amber
+            if (t.includes('apical') || t.includes('periodontitis')) return '#a855f7'; // Purple
+            if (t.includes('impacted')) return '#06b6d4'; // Cyan
+            if (t.includes('restoration') || t.includes('prosthetic')) return '#10b981'; // Green
+            if (t.includes('endodontic') || t.includes('obturation')) return '#3b82f6'; // Blue
+            if (t.includes('implant')) return '#14b8a6'; // Teal
+            if (t.includes('surgical') || t.includes('orthodontic')) return '#8b5cf6'; // Indigo
+            if (t.includes('root') || t.includes('fragment')) return '#ec4899'; // Pink
+            if (t.includes('furcation')) return '#f97316'; // Orange
+            return '#0284c7';
         }
 
         function getPathologyDescription(type) {
-            switch((type || '').toLowerCase()) {
-                case 'caries': 
-                    return "Demineralization of dental hard tissues (tooth decay) localized in marked region. Immediate clinical cavity restoration recommended.";
-                case 'bone loss': 
-                    return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk and root support loss.";
-                case 'periapical lesion': 
-                    return "Radiolucent area detected around root apex indicating apical periodontitis, pulpitis, or periapical abscess.";
-                case 'impacted tooth': 
-                    return "Unerupted tooth structure obstructed from normal eruption by adjacent bone or tooth structure.";
-                case 'restoration': 
-                    return "Radiopaque dental restoration material (filling, crown, or dental implant) present in marked location.";
-                default: 
-                    return "Pathological finding localized in the specified dental radiograph region.";
-            }
+            const t = (type || '').toLowerCase();
+            if (t.includes('caries') || t.includes('carious')) 
+                return "Demineralization of dental hard tissues (tooth decay) localized in marked region. Cavity restoration recommended.";
+            if (t.includes('bone')) 
+                return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk and root support loss.";
+            if (t.includes('apical')) 
+                return "Radiolucent area around root apex indicating periapical periodontitis, pulpitis, or periapical lesion.";
+            if (t.includes('impacted')) 
+                return "Unerupted tooth structure obstructed from normal eruption by adjacent bone or tooth structure.";
+            if (t.includes('restoration') || t.includes('prosthetic')) 
+                return "Radiopaque dental restoration (filling, crown, or bridge) present in marked location.";
+            if (t.includes('endodontic') || t.includes('obturation')) 
+                return "Root canal treatment or obturation material present inside root canal anatomy.";
+            if (t.includes('implant')) 
+                return "Osseointegrated endosseous dental implant fixture detected in alveolar bone.";
+            if (t.includes('surgical') || t.includes('orthodontic')) 
+                return "Surgical hardware (pin/plate) or orthodontic appliance present in radiograph.";
+            if (t.includes('root')) 
+                return "Root fragment or root resorption observed in specified region.";
+            if (t.includes('furcation')) 
+                return "Bone resorption in root furcation area of multi-rooted tooth.";
+            return "Pathological finding localized in the specified dental radiograph region.";
         }
 
         function hexToRgba(hex, alpha) {

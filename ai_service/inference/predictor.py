@@ -224,7 +224,7 @@ class XRayPredictor:
 
                         is_upper = norm_box[1] < 0.50
                         base_tooth = 11 if is_upper else 21
-                        tooth_num = f"Tooth #{base_tooth + (int(norm_box[0] * 16) % 16)}"
+                        tooth_num = str(base_tooth + (int(norm_box[0] * 16) % 16))
 
                         raw_predictions.append({
                             "class_id": cls_id,

@@ -17,6 +17,8 @@ def create_deck():
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
     blank_layout = prs.slide_layouts[6]
+    output_dir = Path("docs/presentation")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Theme Colors
     BG_DARK = RGBColor(15, 23, 42)        # Slate 900 #0f172a
@@ -349,31 +351,53 @@ def create_deck():
     ])
 
     # -------------------------------------------------------------
-    # SLIDE 11: Live Demonstration Scenario
+    # SLIDE 11: Clinical Desktop Application in Action (Genuine Screenshots)
     # -------------------------------------------------------------
     s11 = prs.slides.add_slide(blank_layout)
     set_slide_background(s11)
-    add_header(s11, "Demonstration Flow (Live Viva Walkthrough)")
+    add_header(s11, "Clinical Desktop Application in Action (Live Evidence)")
 
-    add_card(s11, 0.8, 1.8, 11.7, 5.0, "Step-by-Step Clinical Demo Path", [
+    # Left Image: Live AI Detection on OPG Radiograph
+    img_opg = os.path.join(output_dir, "screen_4_live_ai_xray_detection.png")
+    if os.path.exists(img_opg):
+        s11.shapes.add_picture(img_opg, Inches(0.8), Inches(1.8), width=Inches(6.2))
+    
+    # Top Right Image: Doctor Clinical Dashboard
+    img_dash = os.path.join(output_dir, "screen_1_doctor_dashboard.png")
+    if os.path.exists(img_dash):
+        s11.shapes.add_picture(img_dash, Inches(7.3), Inches(1.8), width=Inches(5.2))
+
+    # Bottom Right Image: Compiled Radiology Diagnostic Report
+    img_rep = os.path.join(output_dir, "screen_6_diagnostic_report.png")
+    if os.path.exists(img_rep):
+        s11.shapes.add_picture(img_rep, Inches(7.3), Inches(4.5), width=Inches(5.2))
+
+    # -------------------------------------------------------------
+    # SLIDE 12: Live Demonstration Scenario
+    # -------------------------------------------------------------
+    s12 = prs.slides.add_slide(blank_layout)
+    set_slide_background(s12)
+    add_header(s12, "Demonstration Flow (Live Viva Walkthrough)")
+
+    add_card(s12, 0.8, 1.8, 11.7, 5.0, "Step-by-Step Clinical Demo Path", [
         "Step 1: Receptionist registers patient 'Amina Rahmani' (DOB: 1992-04-14, Medical Flag: Penicillin Allergy).",
         "Step 2: Switch role to Dr. Twahir Mohammed -> open patient workspace from queue.",
         "Step 3: Record Clinical Consultation: Chief complaint = 'Sharp pain in lower right molar (Tooth #46)'.",
         "Step 4: Navigate to 'X-rays & AI Engine' -> click 'Upload OPG X-Ray' -> select panoramic radiograph from disk.",
-        "Step 5: Trigger AI Dental Analysis -> YOLO11m executes in ~120ms -> Bounding boxes render on canvas (Caries #46, Apical Lesion #46).",
-        "Step 6: Doctor confirms Caries finding on #46 -> modifies notes -> navigates to 'Diagnostic Reports'.",
+        "Step 5: Trigger AI Dental Analysis -> YOLO11m executes native tiling + WBF in ~746ms -> Bounding boxes render on canvas.",
+        "Step 6: Doctor confirms Caries finding on #15 / Obturation on #31 -> modifies notes -> navigates to 'Diagnostic Reports'.",
         "Step 7: Auto-compiled diagnostic report displays AI detections and doctor directives -> print/export ready.",
         "Step 8: Open 'History Timeline' -> verify chronological event chain (Registration -> Visit -> X-ray -> AI Analysis -> Report)."
     ])
 
     # -------------------------------------------------------------
-    # SLIDE 12: Testing & Verification Evidence
+    # SLIDE 13: Testing & Verification Evidence
     # -------------------------------------------------------------
-    s12 = prs.slides.add_slide(blank_layout)
-    set_slide_background(s12)
-    add_header(s12, "Testing & Verification Evidence")
+    s13 = prs.slides.add_slide(blank_layout)
+    set_slide_background(s13)
+    add_header(s13, "Testing & Verification Evidence")
 
-    add_card(s12, 0.8, 1.8, 5.6, 5.0, "Automated Test Suites", [
+    add_card(s13, 0.8, 1.8, 5.6, 5.0, "Automated Test Suites", [
         "AI Service Test Suite: 23 passed, 0 failed via PyTest.",
         "API Tests: Verified /health, /version, /analyze multipart uploads.",
         "Inference & Preprocessor Tests: Verified CLAHE, augmentations, and NMS suppression.",
@@ -381,28 +405,28 @@ def create_deck():
         "Desktop Production Bundle: Vite compiles 1,495 modules in 1.81s with 0 errors."
     ])
 
-    add_card(s12, 6.8, 1.8, 5.7, 5.0, "Robustness & Failure Handling", [
-        "Graceful Fallback: OpenCV contour engine activates if model file is missing.",
+    add_card(s13, 6.8, 1.8, 5.7, 5.0, "Robustness & Failure Handling", [
+        "Graceful Fallback: Dual-gateway client falls back directly to local FastAPI if database is offline.",
         "Network Disconnection: Desktop API client gracefully handles offline states without crashing.",
         "Data Validation: Zod schemas validate phone, DOB, and clinical inputs.",
         "Security: Helmet headers, CORS restrictions, JWT auth middleware."
     ])
 
     # -------------------------------------------------------------
-    # SLIDE 13: Limitations & Future Enhancements
+    # SLIDE 14: Limitations & Future Enhancements
     # -------------------------------------------------------------
-    s13 = prs.slides.add_slide(blank_layout)
-    set_slide_background(s13)
-    add_header(s13, "Current Limitations & Future Scope")
+    s14 = prs.slides.add_slide(blank_layout)
+    set_slide_background(s14)
+    add_header(s14, "Current Limitations & Future Scope")
 
-    add_card(s13, 0.8, 1.8, 5.6, 5.0, "Honest Technical Limitations", [
+    add_card(s14, 0.8, 1.8, 5.6, 5.0, "Honest Technical Limitations", [
         "Superimposed Jaw Anatomy: Ghost shadows from cervical spine occasionally cause spurious low-confidence detections.",
         "Micro-Caries Sensitivity: Incipient enamel-only caries (<10px) remain challenging on lower-resolution scans.",
         "Diffuse Bone Resorption: Horizontal alveolar crest reduction lacks sharp edges, requiring clinician verification.",
         "2D vs 3D Modality: Panoramic 2D scans cannot measure buccolingual bone depth."
     ])
 
-    add_card(s13, 6.8, 1.8, 5.7, 5.0, "Future Scope (Version 2.0)", [
+    add_card(s14, 6.8, 1.8, 5.7, 5.0, "Future Scope (Version 2.0)", [
         "CBCT 3D Volumetric Segmentation: Multi-planar reconstruction for implant planning.",
         "Voice-Assisted Dictation: Speech-to-text clinical consultation logging.",
         "Tooth Segmentation Masks: Instance segmentation (YOLO11-seg) for exact crown/root boundaries.",
@@ -410,13 +434,13 @@ def create_deck():
     ])
 
     # -------------------------------------------------------------
-    # SLIDE 14: Conclusion & Acknowledgments
+    # SLIDE 15: Conclusion & Acknowledgments
     # -------------------------------------------------------------
-    s14 = prs.slides.add_slide(blank_layout)
-    set_slide_background(s14)
-    add_header(s14, "Conclusion & Team Contributions")
+    s15 = prs.slides.add_slide(blank_layout)
+    set_slide_background(s15)
+    add_header(s15, "Conclusion & Team Contributions")
 
-    add_card(s14, 0.8, 1.8, 11.7, 5.0, "Summary & Acknowledgments", [
+    add_card(s15, 0.8, 1.8, 11.7, 5.0, "Summary & Acknowledgments", [
         "Conclusion: DentaVision AI successfully delivers an integrated, clinically viable dental management system powered by a state-of-the-art YOLO11m patch-tiled detection model achieving 51.4% mAP@50 on real clinical benchmarks.",
         "Team Ownership & Accomplishments:",
         "  • Noaman: AI Dataset restoration, YOLO11m patch tiling, WBF inference pipeline, system technical integration.",

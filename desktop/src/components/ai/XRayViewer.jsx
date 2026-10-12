@@ -1,13 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../context/AIContext';
-import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders, Upload, RefreshCw } from 'lucide-react';
 
 export const XRayViewer = () => {
-  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter } = useAI();
+  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, runAIAnalysis } = useAI();
   const [zoom, setZoom] = useState(1);
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [showOverlays, setShowOverlays] = useState(true);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      runAIAnalysis(`XRAY-${Date.now().toString().slice(-4)}`, objectUrl, file);
+    }
+  };
+
+  const handleResetSample = () => {
+    runAIAnalysis('XRAY-2026-0042', '/sample_xray.png', null);
+  };
 
   if (!analysisResult) return null;
 
@@ -31,6 +44,32 @@ export const XRayViewer = () => {
 
         {/* Zoom & Image Adjust Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Upload custom patient X-ray image"
+          >
+            <Upload size={14} color="var(--primary-teal)" />
+            <span>Upload X-ray</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+
+          <button
+            onClick={handleResetSample}
+            className="btn-secondary"
+            style={{ padding: '6px 10px', fontSize: '12px' }}
+            title="Reload verified sample radiograph"
+          >
+            <RefreshCw size={14} />
+          </button>
+
           <button onClick={() => setZoom(prev => Math.min(prev + 0.2, 2.5))} className="btn-secondary" style={{ padding: '6px 10px' }}>
             <ZoomIn size={16} />
           </button>

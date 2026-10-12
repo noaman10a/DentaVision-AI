@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Shield, Lock, Mail, UserCheck, Stethoscope, Users, ArrowRight, KeyRound } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { Sparkles, Shield, Lock, Mail, UserCheck, Stethoscope, Users, ArrowRight, KeyRound, Moon, Sun } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [emailOrId, setEmailOrId] = useState('twahir.doctor@dentavision.ai');
   const [password, setPassword] = useState('password123');
   const [selectedRole, setSelectedRole] = useState('doctor');
@@ -36,7 +38,8 @@ export const LoginPage = () => {
       
       const redirectPath = 
         selectedRole === 'reception' ? '/reception' :
-        selectedRole === 'admin' ? '/admin' : '/doctor';
+        selectedRole === 'admin' ? '/admin' :
+        selectedRole === 'assistant' || selectedRole === 'staff' ? '/workspace' : '/doctor';
       navigate(redirectPath);
     }, 600);
   };
@@ -62,14 +65,74 @@ export const LoginPage = () => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
+        position: 'relative',
         transition: 'var(--transition-theme)',
       }}
     >
+      {/* Top Right Theme Toggle for Login Screen */}
+      <button
+        onClick={toggleTheme}
+        style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: 'var(--btn-secondary-bg)',
+          border: '1px solid var(--border-glass)',
+          borderRadius: 'var(--radius-full)',
+          padding: '6px 14px',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'var(--transition-theme)',
+          outline: 'none',
+          zIndex: 10,
+        }}
+        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {theme === 'dark' ? (
+          <>
+            <Moon size={16} color="var(--primary-teal)" />
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Dark Mode</span>
+          </>
+        ) : (
+          <>
+            <Sun size={16} color="#f59e0b" />
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Light Mode</span>
+          </>
+        )}
+        <div
+          style={{
+            width: '30px',
+            height: '16px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--primary-teal)',
+            position: 'relative',
+            marginLeft: '2px',
+          }}
+        >
+          <div
+            style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: '#ffffff',
+              position: 'absolute',
+              top: '2px',
+              left: theme === 'dark' ? '15px' : '2px',
+              transition: 'left 0.25s ease',
+            }}
+          />
+        </div>
+      </button>
+
       <div
         className="glass-card fade-in"
         style={{
           width: '100%',
-          maxWidth: '460px',
+          maxWidth: '480px',
           padding: '36px',
           boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
           borderRadius: 'var(--radius-lg)',
@@ -104,12 +167,12 @@ export const LoginPage = () => {
         {/* Role Quick Selector */}
         <div style={{ marginBottom: '20px' }}>
           <label className="input-label" style={{ textAlign: 'center', marginBottom: '8px' }}>Select Workstation Role Profile</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
             <button
               type="button"
               onClick={() => { setSelectedRole('reception'); setEmailOrId('sneha.reception@dentavision.ai'); }}
               style={{
-                padding: '8px',
+                padding: '8px 4px',
                 borderRadius: '8px',
                 border: selectedRole === 'reception' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
                 backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
@@ -131,7 +194,7 @@ export const LoginPage = () => {
               type="button"
               onClick={() => { setSelectedRole('doctor'); setEmailOrId('twahir.doctor@dentavision.ai'); }}
               style={{
-                padding: '8px',
+                padding: '8px 4px',
                 borderRadius: '8px',
                 border: selectedRole === 'doctor' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
                 backgroundColor: selectedRole === 'doctor' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
@@ -151,9 +214,31 @@ export const LoginPage = () => {
 
             <button
               type="button"
+              onClick={() => { setSelectedRole('assistant'); setEmailOrId('assistant@dentavision.ai'); }}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '8px',
+                border: selectedRole === 'assistant' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
+                backgroundColor: selectedRole === 'assistant' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
+                color: selectedRole === 'assistant' ? 'var(--primary-teal)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '11px',
+                fontWeight: '600',
+              }}
+            >
+              <UserCheck size={16} color={selectedRole === 'assistant' ? 'var(--primary-teal)' : 'currentColor'} />
+              <span>Assistant</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => { setSelectedRole('admin'); setEmailOrId('admin@dentavision.ai'); }}
               style={{
-                padding: '8px',
+                padding: '8px 4px',
                 borderRadius: '8px',
                 border: selectedRole === 'admin' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
                 backgroundColor: selectedRole === 'admin' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',

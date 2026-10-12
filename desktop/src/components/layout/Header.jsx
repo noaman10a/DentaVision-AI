@@ -236,6 +236,48 @@ export const Header = () => {
                 <Shield size={16} color="var(--status-warning)" />
                 <span>Administrator</span>
               </button>
+
+              <button
+                onClick={() => { switchRole('assistant'); setShowRoleMenu(false); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  background: user?.role === 'assistant' ? 'var(--primary-teal-glow)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  textAlign: 'left',
+                }}
+              >
+                <UserCheck size={16} color="var(--status-success)" />
+                <span>Clinical Assistant</span>
+              </button>
+
+              <button
+                onClick={() => { switchRole('staff'); setShowRoleMenu(false); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  width: '100%',
+                  padding: '8px 10px',
+                  border: 'none',
+                  background: user?.role === 'staff' ? 'var(--primary-teal-glow)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  textAlign: 'left',
+                }}
+              >
+                <Users size={16} color="var(--text-muted)" />
+                <span>Staff Team View</span>
+              </button>
             </div>
           )}
         </div>

@@ -6,6 +6,9 @@ export const initialRoles = {
   RECEPTION: 'reception',
   DOCTOR: 'doctor',
   ADMIN: 'admin',
+  HYGIENIST: 'hygienist',
+  ASSISTANT: 'assistant',
+  STAFF: 'staff',
 };
 
 const mockUsers = {
@@ -35,6 +38,24 @@ const mockUsers = {
     email: 'admin@dentavision.ai',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision HQ',
+  },
+  assistant: {
+    id: 'AST-204',
+    name: 'Clinical Assistant',
+    role: 'assistant',
+    roleLabel: 'Dental Hygienist & Assistant',
+    email: 'assistant@dentavision.ai',
+    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80',
+    clinic: 'DentaVision Main Clinic - Room 2',
+  },
+  staff: {
+    id: 'STF-305',
+    name: 'Clinic Team Member',
+    role: 'staff',
+    roleLabel: 'Clinical Team Staff',
+    email: 'staff@dentavision.ai',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    clinic: 'DentaVision Main Clinic',
   },
 };
 

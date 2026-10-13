@@ -15,6 +15,7 @@ export const XRayViewer = () => {
     if (file) {
       const objectUrl = URL.createObjectURL(file);
       runAIAnalysis(file.name || `XRAY-${Date.now().toString().slice(-4)}`, objectUrl, file);
+      e.target.value = '';
     }
   };
 

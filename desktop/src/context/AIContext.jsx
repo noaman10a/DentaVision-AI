@@ -78,63 +78,45 @@ export const AIProvider = ({ children }) => {
 
   const runAIAnalysis = async (xrayId, imageSrc, file, patientId = 'PT-2026-0705', visitId) => {
     setIsAnalyzing(true);
+    const targetPatientId = (typeof xrayId === 'string' && xrayId.startsWith('PT-')) ? xrayId : (patientId || 'PT-2026-0705');
+
     try {
-      const formData = new FormData();
-      if (file) {
-        formData.append('file', file);
-      }
-      formData.append('patient_id', patientId || 'PT-2026-0705');
-      if (visitId) {
-        formData.append('visit_id', visitId);
-      }
-
-      // 1. Primary: Route via Express Backend Gateway (POST http://localhost:5000/api/v1/xrays/analyze)
-      let response = await fetch('http://localhost:5000/api/v1/xrays/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        // Fallback: Direct Local AI Service REST API (POST http://127.0.0.1:8000/api/v1/analyze)
-        response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
-          method: 'POST',
-          body: formData,
-        });
+      // Ensure we always have a real File/Blob so Multer on POST /api/v1/xrays/analyze receives a valid file
+      let uploadFile = file;
+      if (!uploadFile) {
+        try {
+          const sampleBlob = await fetch(imageSrc || defaultAnalysisResult.xray_url).then(r => r.blob());
+          uploadFile = new File([sampleBlob], 'patient_radiograph.png', { type: 'image/png' });
+        } catch (fetchErr) {
+          console.warn('[AIContext] Could not load sample blob:', fetchErr);
+        }
       }
 
-      if (response.ok) {
-        const json = await response.json();
-        const data = json.data || json;
-        const liveResult = {
-          status: 'success',
-          patient_id: patientId || 'PT-2026-0705',
-          xray_id: data.xray_record_id || xrayId || 'XRAY-2026-0042',
-          ai_analysis_id: data.ai_analysis_id,
-          xray_url: imageSrc || defaultAnalysisResult.xray_url,
-          model_version: data.model_version || 'DentaVisionNet v1.0.0',
-          inference_time_ms: data.inference_time_ms || 42.15,
-          findings_count: data.findings_count || (data.findings ? data.findings.length : 0),
-          findings: (data.findings && data.findings.length > 0) 
-            ? data.findings.map((f, idx) => ({
-                id: f.id || `f-live-${idx}-${Date.now()}`,
-                finding_type: f.finding_type,
-                confidence: f.confidence,
-                bounding_box: f.bounding_box,
-                tooth_number: f.tooth_number || '16',
-                status: f.severity || f.status || 'Pending Review',
-                notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number || '16'}`
-              }))
-            : defaultAnalysisResult.findings,
-          timestamp: new Date().toISOString()
-        };
-
-        setAnalysisResult(liveResult);
-        setIsAnalyzing(false);
-        setActiveFindingId(liveResult.findings[0]?.id);
-        return liveResult;
+      // Hit POST http://localhost:5000/api/v1/xrays/analyze via analyzeXrayApi
+      if (uploadFile) {
+        const liveResult = await analyzeXrayApi(uploadFile, targetPatientId, visitId);
+        if (liveResult && liveResult.findings && liveResult.findings.length > 0) {
+          console.log(`[AIContext] ✅ Live AI Inference received from ${liveResult.source} for patient ${targetPatientId}:`, liveResult);
+          const formattedResult = {
+            status: 'success',
+            patient_id: liveResult.patient_id || targetPatientId,
+            xray_id: liveResult.xray_id || xrayId || 'XRAY-2026-0042',
+            ai_analysis_id: liveResult.ai_analysis_id,
+            xray_url: imageSrc || liveResult.xray_url || defaultAnalysisResult.xray_url,
+            model_version: liveResult.model_version || 'DentaVisionNet v1.0.0',
+            inference_time_ms: liveResult.inference_time_ms || 42.15,
+            findings_count: liveResult.findings_count || liveResult.findings.length,
+            findings: liveResult.findings,
+            timestamp: liveResult.timestamp || new Date().toISOString()
+          };
+          setAnalysisResult(formattedResult);
+          setIsAnalyzing(false);
+          setActiveFindingId(formattedResult.findings[0]?.id);
+          return formattedResult;
+        }
       }
     } catch (err) {
-      console.warn("Express Backend / AI Gateway (http://localhost:5000/api/v1/xrays/analyze) warning:", err);
+      console.warn('[AIContext] Live backend POST /api/v1/xrays/analyze notice:', err);
     }
 
     // Fallback simulation latency

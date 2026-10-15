@@ -117,8 +117,8 @@ export const XRayViewer = () => {
         <div
           style={{
             position: 'relative',
-            width: '100%',
-            height: '100%',
+            maxWidth: '100%',
+            maxHeight: '100%',
             transform: `scale(${zoom})`,
             transition: 'transform 0.2s ease-out',
             display: 'flex',
@@ -126,155 +126,174 @@ export const XRayViewer = () => {
             justifyContent: 'center',
           }}
         >
-          {/* X-ray Image with Filter adjustments */}
-          <img
-            src={analysisResult.xray_url}
-            alt="Dental X-ray DICOM"
+          {/* Inner Image Canvas Wrapper that strictly matches the rendered image dimensions */}
+          <div
             style={{
+              position: 'relative',
+              display: 'inline-block',
+              lineHeight: 0,
               maxWidth: '100%',
-              maxHeight: '100%',
-              objectFit: 'contain',
-              filter: `brightness(${brightness}%) contrast(${contrast}%)`,
+              maxHeight: '410px',
             }}
-          />
+          >
+            {/* X-ray Image with Filter adjustments */}
+            <img
+              src={analysisResult.xray_url}
+              alt="Dental X-ray DICOM"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '410px',
+                objectFit: 'contain',
+                display: 'block',
+                filter: `brightness(${brightness}%) contrast(${contrast}%)`,
+              }}
+            />
 
-          {/* Render Overlaid Bounding Boxes */}
-          {showOverlays && analysisResult.findings.map(finding => {
-            if (finding.confidence < confidenceFilter) return null;
-            const bbox = finding.bounding_box || {};
-            const isSelected = finding.id === activeFindingId;
+            {/* Render Overlaid Bounding Boxes */}
+            {showOverlays && analysisResult.findings.map(finding => {
+              if (finding.confidence < confidenceFilter) return null;
+              const bbox = finding.bounding_box || {};
+              const isSelected = finding.id === activeFindingId;
 
-            // Safe normalized bounding box extraction (handles both object and array)
-            const xMin = bbox.x_min ?? (Array.isArray(bbox) ? bbox[0] : 0.2);
-            const yMin = bbox.y_min ?? (Array.isArray(bbox) ? bbox[1] : 0.2);
-            const xMax = bbox.x_max ?? (Array.isArray(bbox) ? bbox[2] : 0.4);
-            const yMax = bbox.y_max ?? (Array.isArray(bbox) ? bbox[3] : 0.4);
+              // Safe normalized bounding box extraction (handles both object and array)
+              const xMin = bbox.x_min ?? (Array.isArray(bbox) ? bbox[0] : 0.2);
+              const yMin = bbox.y_min ?? (Array.isArray(bbox) ? bbox[1] : 0.2);
+              const xMax = bbox.x_max ?? (Array.isArray(bbox) ? bbox[2] : 0.4);
+              const yMax = bbox.y_max ?? (Array.isArray(bbox) ? bbox[3] : 0.4);
 
-            // Bounding box percentages
-            const left = `${Math.max(0, Math.min(1, xMin)) * 100}%`;
-            const top = `${Math.max(0, Math.min(1, yMin)) * 100}%`;
-            const width = `${Math.max(0.01, Math.min(1, xMax - xMin)) * 100}%`;
-            const height = `${Math.max(0.01, Math.min(1, yMax - yMin)) * 100}%`;
+              // Bounding box percentages relative to the exact image
+              const left = `${Math.max(0, Math.min(1, xMin)) * 100}%`;
+              const top = `${Math.max(0, Math.min(1, yMin)) * 100}%`;
+              const width = `${Math.max(0.01, Math.min(1, xMax - xMin)) * 100}%`;
+              const height = `${Math.max(0.01, Math.min(1, yMax - yMin)) * 100}%`;
 
-            const statusColor = 
-              finding.status === 'Confirmed' ? 'var(--status-success)' :
-              finding.status === 'Rejected' ? 'var(--status-error)' :
-              finding.status === 'Modified' ? 'var(--status-warning)' : 'var(--primary-teal)';
+              const statusColor = 
+                finding.status === 'Confirmed' ? 'var(--status-success)' :
+                finding.status === 'Rejected' ? 'var(--status-error)' :
+                finding.status === 'Modified' ? 'var(--status-warning)' : 'var(--primary-teal)';
 
-            return (
-              <div
-                key={finding.id}
-                onClick={() => setActiveFindingId(finding.id)}
-                style={{
-                  position: 'absolute',
-                  left,
-                  top,
-                  width,
-                  height,
-                  border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
-                  backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.1)',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? `0 0 16px ${statusColor}` : 'none',
-                  borderRadius: '4px',
-                  transition: 'all 0.2s ease',
-                  zIndex: isSelected ? 10 : 5,
-                }}
-              >
-                {/* Bounding box label */}
+              const cleanTooth = String(finding.tooth_number || '').replace(/^Tooth\s*#?\s*/i, '');
+
+              return (
                 <div
+                  key={finding.id}
+                  onClick={() => setActiveFindingId(finding.id)}
                   style={{
                     position: 'absolute',
-                    top: '-24px',
-                    left: '0',
-                    backgroundColor: statusColor,
-                    color: '#fff',
-                    padding: '2px 6px',
+                    left,
+                    top,
+                    width,
+                    height,
+                    border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
+                    backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.1)',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? `0 0 16px ${statusColor}` : 'none',
                     borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: '700',
-                    whiteSpace: 'nowrap',
-                    boxShadow: 'var(--shadow-sm)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
+                    transition: 'all 0.2s ease',
+                    zIndex: isSelected ? 10 : 5,
+                    boxSizing: 'border-box',
                   }}
                 >
-                  <span>Tooth #{finding.tooth_number} - {finding.finding_type}</span>
-                  <span>({(finding.confidence * 100).toFixed(0)}%)</span>
+                  {/* Bounding box label */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-24px',
+                      left: '0',
+                      backgroundColor: statusColor,
+                      color: '#fff',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      whiteSpace: 'nowrap',
+                      boxShadow: 'var(--shadow-sm)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      lineHeight: '1.2',
+                    }}
+                  >
+                    <span>Tooth #{cleanTooth || '??'} - {finding.finding_type}</span>
+                    <span>({(finding.confidence * 100).toFixed(0)}%)</span>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Selected Finding Action Drawer */}
-      {activeFinding && (
-        <div
-          style={{
-            backgroundColor: 'var(--btn-secondary-bg)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px',
-            border: '1px solid var(--border-glass)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '12px',
-            transition: 'var(--transition-theme)',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                Selected: Tooth #{activeFinding.tooth_number} - {activeFinding.finding_type}
-              </h4>
-              <span className={`badge ${
-                activeFinding.status === 'Confirmed' ? 'badge-success' :
-                activeFinding.status === 'Rejected' ? 'badge-error' :
-                activeFinding.status === 'Modified' ? 'badge-warning' : 'badge-info'
-              }`}>
-                {activeFinding.status}
-              </span>
+      {activeFinding && (() => {
+        const cleanActiveTooth = String(activeFinding.tooth_number || '').replace(/^Tooth\s*#?\s*/i, '');
+        return (
+          <div
+            style={{
+              backgroundColor: 'var(--btn-secondary-bg)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              border: '1px solid var(--border-glass)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              transition: 'var(--transition-theme)',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                  Selected: Tooth #{cleanActiveTooth || '??'} - {activeFinding.finding_type}
+                </h4>
+                <span className={`badge ${
+                  activeFinding.status === 'Confirmed' ? 'badge-success' :
+                  activeFinding.status === 'Rejected' ? 'badge-error' :
+                  activeFinding.status === 'Modified' ? 'badge-warning' : 'badge-info'
+                }`}>
+                  {activeFinding.status}
+                </span>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                AI Confidence: {(activeFinding.confidence * 100).toFixed(1)}% • Bounding box coordinates verified
+              </p>
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              AI Confidence: {(activeFinding.confidence * 100).toFixed(1)}% • Bounding box coordinates verified
-            </p>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                onClick={() => confirmFinding(activeFinding.id)}
+                className="btn-primary"
+                style={{ backgroundColor: 'var(--status-success)', padding: '8px 14px', fontSize: '13px' }}
+              >
+                <Check size={16} />
+                <span>Confirm Finding</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const newTooth = prompt('Enter modified Tooth Number (e.g. 31):', cleanActiveTooth);
+                  if (newTooth) modifyFinding(activeFinding.id, { tooth_number: newTooth.replace(/^Tooth\s*#?\s*/i, '') });
+                }}
+                className="btn-secondary"
+                style={{ padding: '8px 14px', fontSize: '13px' }}
+              >
+                <Edit3 size={16} />
+                <span>Modify</span>
+              </button>
+
+              <button
+                onClick={() => rejectFinding(activeFinding.id)}
+                className="btn-secondary btn-danger"
+                style={{ padding: '8px 14px', fontSize: '13px' }}
+              >
+                <X size={16} />
+                <span>Reject</span>
+              </button>
+            </div>
           </div>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => confirmFinding(activeFinding.id)}
-              className="btn-primary"
-              style={{ backgroundColor: 'var(--status-success)', padding: '8px 14px', fontSize: '13px' }}
-            >
-              <Check size={16} />
-              <span>Confirm Finding</span>
-            </button>
-
-            <button
-              onClick={() => {
-                const newTooth = prompt('Enter modified Tooth Number:', activeFinding.tooth_number);
-                if (newTooth) modifyFinding(activeFinding.id, { tooth_number: newTooth });
-              }}
-              className="btn-secondary"
-              style={{ padding: '8px 14px', fontSize: '13px' }}
-            >
-              <Edit3 size={16} />
-              <span>Modify</span>
-            </button>
-
-            <button
-              onClick={() => rejectFinding(activeFinding.id)}
-              className="btn-secondary btn-danger"
-              style={{ padding: '8px 14px', fontSize: '13px' }}
-            >
-              <X size={16} />
-              <span>Reject</span>
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

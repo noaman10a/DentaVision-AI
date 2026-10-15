@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePatients } from '../../context/PatientContext';
 import { useAI } from '../../context/AIContext';
+import { useAuth } from '../../context/AuthContext';
 import { FileText, Save, Printer, Sparkles, CheckCircle2, Edit3, Share2 } from 'lucide-react';
 
 export const ReportModule = () => {
   const { activePatient } = usePatients();
   const { analysisResult } = useAI();
+  const { user } = useAuth();
+
   const [doctorNotes, setDoctorNotes] = useState(
-    "AI Neural Network detected Caries on Tooth #16 with 92% confidence. Clinical examination confirms radiolucency. Recommended treatment: Composite resin restoration under local anesthesia."
+    "AI Neural Network detected Caries on Tooth #46 with 92% confidence. Clinical examination confirms radiolucency. Recommended treatment: Composite resin restoration under local anesthesia."
   );
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (analysisResult?.findings?.length > 0) {
+      const summary = analysisResult.findings
+        .map(f => `${f.finding_type} on Tooth #${String(f.tooth_number || '').replace(/^Tooth\s*#?\s*/i, '')} (${f.status || 'Pending'})`)
+        .join(', ');
+      setDoctorNotes(
+        `Comprehensive OPG radiograph review completed for ${activePatient?.name || 'patient'}. AI findings evaluated: ${summary}. Clinical examination confirms radiographic findings. Recommended treatment plan: composite restoration and follow-up as indicated.`
+      );
+    }
+  }, [analysisResult, activePatient]);
 
   const handleSaveReport = () => {
     setIsSaved(true);
@@ -93,7 +107,7 @@ export const ReportModule = () => {
           </div>
           <div>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Attending Surgeon</p>
-            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>Dr. Twahir Mohammed</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{user?.name || 'Dr. Twahir Mohammed'}</p>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Model Engine: {analysisResult?.model_version}</p>
           </div>
         </div>
@@ -105,17 +119,34 @@ export const ReportModule = () => {
             <span>Automated AI Neural Network Detections</span>
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {analysisResult?.findings.map((f) => (
-              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', backgroundColor: 'var(--btn-secondary-bg)', borderRadius: '6px', borderLeft: '3px solid var(--primary-teal)' }}>
-                <div>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Tooth #{f.tooth_number} - {f.finding_type}</span>
-                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>{f.notes}</p>
+            {analysisResult?.findings.map((f) => {
+              const cleanTooth = String(f.tooth_number || '').replace(/^Tooth\s*#?\s*/i, '');
+              const statusColor = 
+                f.status === 'Confirmed' ? 'badge-success' :
+                f.status === 'Rejected' ? 'badge-error' :
+                f.status === 'Modified' ? 'badge-warning' : 'badge-info';
+
+              return (
+                <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', backgroundColor: 'var(--btn-secondary-bg)', borderRadius: '6px', borderLeft: '3px solid var(--primary-teal)' }}>
+                  <div>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      Tooth #{cleanTooth || '??'} — {f.finding_type}
+                    </span>
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {f.notes || `Model confidence: ${(f.confidence * 100).toFixed(1)}%`}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className={`badge ${statusColor}`} style={{ fontSize: '11px' }}>
+                      {f.status || 'Pending Review'}
+                    </span>
+                    <span className="badge badge-success" style={{ fontSize: '11px' }}>
+                      {(f.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
                 </div>
-                <span className="badge badge-success" style={{ fontSize: '11px' }}>
-                  Confidence: {(f.confidence * 100).toFixed(0)}%
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { useAI } from '../../context/AIContext';
 import { ZoomIn, ZoomOut, RotateCcw, Check, X, Edit3, Sparkles, Layers, Sliders, Upload, RefreshCw } from 'lucide-react';
 
 export const XRayViewer = () => {
-  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, runAIAnalysis, isAnalyzing } = useAI();
+  const { analysisResult, activeFindingId, setActiveFindingId, confirmFinding, rejectFinding, modifyFinding, confidenceFilter, setConfidenceFilter, runAIAnalysis, isAnalyzing } = useAI();
   const [zoom, setZoom] = useState(1);
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
@@ -24,7 +24,21 @@ export const XRayViewer = () => {
 
   if (!analysisResult) return null;
 
-  const activeFinding = analysisResult.findings.find(f => f.id === activeFindingId);
+  const activeFinding = analysisResult.findings?.find(f => f.id === activeFindingId);
+
+  const getFindingColor = (type, status) => {
+    if (status === 'Confirmed') return 'var(--status-success)';
+    if (status === 'Rejected') return 'var(--status-error)';
+    if (status === 'Modified') return 'var(--status-warning)';
+    
+    const lower = String(type || '').toLowerCase();
+    if (lower.includes('carie') || lower.includes('cavity')) return '#f43f5e';
+    if (lower.includes('obturat')) return '#06b6d4';
+    if (lower.includes('bone') || lower.includes('resorb')) return '#a855f7';
+    if (lower.includes('root') || lower.includes('fragment')) return '#fb923c';
+    if (lower.includes('prosthet') || lower.includes('crown') || lower.includes('implant')) return '#38bdf8';
+    return 'var(--primary-teal)';
+  };
 
   return (
     <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px' }}>
@@ -96,6 +110,30 @@ export const XRayViewer = () => {
             <Layers size={14} />
             <span>AI Bounding Boxes: {showOverlays ? 'ON' : 'OFF'}</span>
           </button>
+
+          {/* AI Confidence Threshold Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'var(--btn-secondary-bg)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glass)' }}>
+            <Sliders size={13} color="var(--primary-teal)" />
+            <select
+              value={confidenceFilter}
+              onChange={(e) => setConfidenceFilter(parseFloat(e.target.value))}
+              style={{
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                border: 'none',
+                outline: 'none',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+              title="Minimum AI model confidence threshold"
+            >
+              <option value={0.10} style={{ backgroundColor: 'var(--bg-dark-card)' }}>Min: 10% (Show All)</option>
+              <option value={0.15} style={{ backgroundColor: 'var(--bg-dark-card)' }}>Min: 15% (Recommended)</option>
+              <option value={0.25} style={{ backgroundColor: 'var(--bg-dark-card)' }}>Min: 25% (Calibrated)</option>
+              <option value={0.40} style={{ backgroundColor: 'var(--bg-dark-card)' }}>Min: 40% (High)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -143,6 +181,8 @@ export const XRayViewer = () => {
               style={{
                 maxWidth: '100%',
                 maxHeight: '410px',
+                width: 'auto',
+                height: 'auto',
                 objectFit: 'contain',
                 display: 'block',
                 filter: `brightness(${brightness}%) contrast(${contrast}%)`,
@@ -150,8 +190,8 @@ export const XRayViewer = () => {
             />
 
             {/* Render Overlaid Bounding Boxes */}
-            {showOverlays && analysisResult.findings.map(finding => {
-              if (finding.confidence < confidenceFilter) return null;
+            {showOverlays && (analysisResult.findings || []).map(finding => {
+              if (typeof finding.confidence === 'number' && finding.confidence < (confidenceFilter ?? 0.15)) return null;
               const bbox = finding.bounding_box || {};
               const isSelected = finding.id === activeFindingId;
 
@@ -164,14 +204,10 @@ export const XRayViewer = () => {
               // Bounding box percentages relative to the exact image
               const left = `${Math.max(0, Math.min(1, xMin)) * 100}%`;
               const top = `${Math.max(0, Math.min(1, yMin)) * 100}%`;
-              const width = `${Math.max(0.01, Math.min(1, xMax - xMin)) * 100}%`;
-              const height = `${Math.max(0.01, Math.min(1, yMax - yMin)) * 100}%`;
+              const width = `${Math.max(0.015, Math.min(1, xMax - xMin)) * 100}%`;
+              const height = `${Math.max(0.015, Math.min(1, yMax - yMin)) * 100}%`;
 
-              const statusColor = 
-                finding.status === 'Confirmed' ? 'var(--status-success)' :
-                finding.status === 'Rejected' ? 'var(--status-error)' :
-                finding.status === 'Modified' ? 'var(--status-warning)' : 'var(--primary-teal)';
-
+              const statusColor = getFindingColor(finding.finding_type, finding.status);
               const cleanTooth = String(finding.tooth_number || '').replace(/^Tooth\s*#?\s*/i, '');
 
               return (
@@ -184,13 +220,15 @@ export const XRayViewer = () => {
                     top,
                     width,
                     height,
+                    minWidth: '22px',
+                    minHeight: '18px',
                     border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
-                    backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.1)',
+                    backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.12)',
                     cursor: 'pointer',
-                    boxShadow: isSelected ? `0 0 16px ${statusColor}` : 'none',
+                    boxShadow: isSelected ? `0 0 16px ${statusColor}` : `0 0 6px ${statusColor}`,
                     borderRadius: '4px',
                     transition: 'all 0.2s ease',
-                    zIndex: isSelected ? 10 : 5,
+                    zIndex: isSelected ? 20 : 10,
                     boxSizing: 'border-box',
                   }}
                 >
@@ -212,6 +250,7 @@ export const XRayViewer = () => {
                       alignItems: 'center',
                       gap: '4px',
                       lineHeight: '1.2',
+                      pointerEvents: 'none',
                     }}
                   >
                     <span>Tooth #{cleanTooth || '??'} - {finding.finding_type}</span>

@@ -49,7 +49,7 @@ export const AIProvider = ({ children }) => {
   const [analysisResult, setAnalysisResult] = useState(defaultAnalysisResult);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [confidenceFilter, setConfidenceFilter] = useState(0.5);
+  const [confidenceFilter, setConfidenceFilter] = useState(0.15);
   const [activeFindingId, setActiveFindingId] = useState(defaultAnalysisResult.findings[0]?.id);
 
   // 1. Startup Health Check to verify AI Service readiness

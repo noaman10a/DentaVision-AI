@@ -142,19 +142,26 @@ export const XRayViewer = () => {
           {/* Render Overlaid Bounding Boxes */}
           {showOverlays && analysisResult.findings.map(finding => {
             if (finding.confidence < confidenceFilter) return null;
-            const bbox = finding.bounding_box;
+            const bbox = finding.bounding_box || {};
             const isSelected = finding.id === activeFindingId;
 
-            // Bounding box percentages
-            const left = `${bbox.x_min * 100}%`;
-            const top = `${bbox.y_min * 100}%`;
-            const width = `${(bbox.x_max - bbox.x_min) * 100}%`;
-            const height = `${(bbox.y_max - bbox.y_min) * 100}%`;
+            // Bounding box percentages supporting both array [x1,y1,x2,y2] and object {x_min,y_min,x_max,y_max}
+            const x_min = Array.isArray(bbox) ? bbox[0] : (bbox.x_min ?? 0.2);
+            const y_min = Array.isArray(bbox) ? bbox[1] : (bbox.y_min ?? 0.2);
+            const x_max = Array.isArray(bbox) ? bbox[2] : (bbox.x_max ?? 0.4);
+            const y_max = Array.isArray(bbox) ? bbox[3] : (bbox.y_max ?? 0.4);
+
+            const left = `${x_min * 100}%`;
+            const top = `${y_min * 100}%`;
+            const width = `${Math.max(0, x_max - x_min) * 100}%`;
+            const height = `${Math.max(0, y_max - y_min) * 100}%`;
 
             const statusColor = 
               finding.status === 'Confirmed' ? 'var(--status-success)' :
               finding.status === 'Rejected' ? 'var(--status-error)' :
               finding.status === 'Modified' ? 'var(--status-warning)' : 'var(--primary-teal)';
+
+            const cleanToothNumber = String(finding.tooth_number || '16').replace(/^Tooth\s*#?\s*/i, '');
 
             return (
               <div
@@ -194,7 +201,7 @@ export const XRayViewer = () => {
                     gap: '4px',
                   }}
                 >
-                  <span>Tooth #{finding.tooth_number} - {finding.finding_type}</span>
+                  <span>Tooth #{cleanToothNumber} - {finding.finding_type}</span>
                   <span>({(finding.confidence * 100).toFixed(0)}%)</span>
                 </div>
               </div>
@@ -222,7 +229,7 @@ export const XRayViewer = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                Selected: Tooth #{activeFinding.tooth_number} - {activeFinding.finding_type}
+                Selected: Tooth #{String(activeFinding.tooth_number || '16').replace(/^Tooth\s*#?\s*/i, '')} - {activeFinding.finding_type}
               </h4>
               <span className={`badge ${
                 activeFinding.status === 'Confirmed' ? 'badge-success' :

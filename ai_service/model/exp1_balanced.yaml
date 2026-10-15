@@ -1,0 +1,23 @@
+# Experiment 1: Class-Balanced Oversampling Dataset Config
+# CONTROLLED EXPERIMENT: Only change is training data distribution
+# Validation set is IDENTICAL to Batch 3 baseline
+path: d:/Collage/Major Project/DentaVision-AI/dataset/split/exp1_balanced_dataset
+train: train/images
+val: d:/Collage/Major Project/DentaVision-AI/dataset/DentaVision_Datasets/01_Dental_Condition_Detection/panoramic_radiography_yolo_dataset_14_classes/valid/images
+
+nc: 14
+names:
+  0: "Implant"
+  1: "Prosthetic restoration"
+  2: "Obturation"
+  3: "Endodontic treatment"
+  4: "Carious lesion"
+  5: "Bone resorbtion"
+  6: "Impacted tooth"
+  7: "Apical periodontitis"
+  8: "Root fragment"
+  9: "Furcation lesion"
+  10: "Apical surgery"
+  11: "Root resorption"
+  12: "Orthodontic device"
+  13: "Surgical device"

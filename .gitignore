@@ -67,3 +67,9 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Training Runs & Agent artifacts
+runs/
+.agents/
+ai_service/model/checkpoints/*/
+

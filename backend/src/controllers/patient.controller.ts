@@ -12,6 +12,7 @@ import {
   getPatients,
   getPatientById,
 } from "../services/patient.service";
+import { CreatePatientSchema } from "../validation/schemas";
 import { badRequest, notFound } from "../middleware/errorHandler";
 
 // ---------------------------------------------------------------------------
@@ -24,21 +25,13 @@ export const createPatientController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, dob, gender, phone, email, address } = req.body as {
-      name?: string;
-      dob?: string;
-      gender?: string;
-      phone?: string;
-      email?: string;
-      address?: string;
-    };
+    const parseResult = CreatePatientSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      const issue = parseResult.error.issues[0];
+      return next(badRequest(issue?.message || "Invalid patient data"));
+    }
 
-    if (!name) return next(badRequest("Patient name is required"));
-    if (!dob) return next(badRequest("Date of birth (dob) is required"));
-    if (!gender) return next(badRequest("Gender is required"));
-    if (!phone) return next(badRequest("Phone number is required"));
-
-    const patient = await createPatient({ name, dob, gender, phone, email, address });
+    const patient = await createPatient(parseResult.data);
 
     res.status(201).json({ success: true, data: patient });
   } catch (error) {

@@ -141,14 +141,20 @@ export const XRayViewer = () => {
           {/* Render Overlaid Bounding Boxes */}
           {showOverlays && analysisResult.findings.map(finding => {
             if (finding.confidence < confidenceFilter) return null;
-            const bbox = finding.bounding_box;
+            const bbox = finding.bounding_box || {};
             const isSelected = finding.id === activeFindingId;
 
+            // Safe normalized bounding box extraction (handles both object and array)
+            const xMin = bbox.x_min ?? (Array.isArray(bbox) ? bbox[0] : 0.2);
+            const yMin = bbox.y_min ?? (Array.isArray(bbox) ? bbox[1] : 0.2);
+            const xMax = bbox.x_max ?? (Array.isArray(bbox) ? bbox[2] : 0.4);
+            const yMax = bbox.y_max ?? (Array.isArray(bbox) ? bbox[3] : 0.4);
+
             // Bounding box percentages
-            const left = `${bbox.x_min * 100}%`;
-            const top = `${bbox.y_min * 100}%`;
-            const width = `${(bbox.x_max - bbox.x_min) * 100}%`;
-            const height = `${(bbox.y_max - bbox.y_min) * 100}%`;
+            const left = `${Math.max(0, Math.min(1, xMin)) * 100}%`;
+            const top = `${Math.max(0, Math.min(1, yMin)) * 100}%`;
+            const width = `${Math.max(0.01, Math.min(1, xMax - xMin)) * 100}%`;
+            const height = `${Math.max(0.01, Math.min(1, yMax - yMin)) * 100}%`;
 
             const statusColor = 
               finding.status === 'Confirmed' ? 'var(--status-success)' :

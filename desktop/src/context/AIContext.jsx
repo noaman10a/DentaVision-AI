@@ -119,10 +119,15 @@ export const AIProvider = ({ children }) => {
                 id: f.id || `f-live-${idx}-${Date.now()}`,
                 finding_type: f.finding_type,
                 confidence: f.confidence,
-                bounding_box: f.bounding_box,
-                tooth_number: f.tooth_number || '16',
+                bounding_box: {
+                  x_min: f.bounding_box?.x_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[0] : 0.2),
+                  y_min: f.bounding_box?.y_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[1] : 0.2),
+                  x_max: f.bounding_box?.x_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[2] : 0.4),
+                  y_max: f.bounding_box?.y_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[3] : 0.4),
+                },
+                tooth_number: f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16',
                 status: f.severity || f.status || 'Pending Review',
-                notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number || '16'}`
+                notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16'}`
               }))
             : defaultAnalysisResult.findings,
           timestamp: new Date().toISOString()

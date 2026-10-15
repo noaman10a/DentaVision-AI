@@ -100,13 +100,15 @@ export const PatientProvider = ({ children }) => {
               dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '1992-04-14',
               gender: p.gender || 'Female',
               address: p.address || '42 MG Road, Suite 3, Bengaluru, KA',
-              medicalHistory: p.medicalHistory ? p.medicalHistory.map(m => m.condition) : ['Penicillin Allergy', 'Mild Hypertension'],
-              emergencyContact: 'Farhan Rahmani (+91 98765 43211)',
+              medicalHistory: (p.medicalHistories || p.medicalHistory)
+                ? (p.medicalHistories || p.medicalHistory).map(m => typeof m === 'string' ? m : (m.condition || m.name || 'Condition'))
+                : ['Penicillin Allergy', 'Mild Hypertension'],
+              emergencyContact: p.emergencyContact || 'Farhan Rahmani (+91 98765 43211)',
               lastVisit: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : '2026-08-10',
               status: p.status || 'Awaiting Review',
-              xrayCount: 3,
-              reportsCount: 2,
-              visits: p.visits || initialPatients[0].visits
+              xrayCount: p.xrayRecords?.length ?? p.xrays?.length ?? 3,
+              reportsCount: p.reports?.length ?? 2,
+              visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits
             }));
             setPatients(mapped);
             setActivePatient(mapped[0]);

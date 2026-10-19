@@ -244,7 +244,7 @@ class XRayPredictor:
                             finding_type = YOLO_CLASS_NAMES.get(cls_id, f"Pathology_{cls_id}")
                             is_upper = xyxyn[1] < 0.50
                             base_tooth = 11 if is_upper else 21
-                            tooth_num = f"Tooth #{base_tooth + (int(xyxyn[0] * 16) % 16)}"
+                            tooth_num = str(base_tooth + (int(xyxyn[0] * 16) % 16))
                             raw_predictions.append({
                                 "class_id": cls_id,
                                 "finding_type": finding_type,
@@ -300,7 +300,7 @@ class XRayPredictor:
                 detected_type = pathology_types[path_idx]
                 conf = round(min(0.978, max(0.895, 0.895 + (((hash_int + f_idx * 17) % 84) / 1000.0))), 3)
                 is_upper = box[1] < 0.50
-                tooth_num = f"Tooth #{(11 if is_upper else 21) + ((hash_int + f_idx * 3) % 16)}"
+                tooth_num = str((11 if is_upper else 21) + ((hash_int + f_idx * 3) % 16))
 
                 raw_predictions.append({
                     "class_id": path_idx,

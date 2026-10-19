@@ -9,6 +9,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedLayout } from './components/layout/ProtectedLayout';
 
 import { LoginPage } from './pages/LoginPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 
 // Reception Pages
 import { ReceptionDashboard } from './pages/reception/ReceptionDashboard';
@@ -42,8 +43,9 @@ export const App = () => {
           <AIProvider>
             <HashRouter>
               <Routes>
-                {/* Public Route */}
+                {/* Public Routes */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
                 {/* Protected Workstation Shell */}
                 <Route element={<ProtectedLayout />}>

@@ -1,42 +1,27 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Sparkles, Lock, Mail, Stethoscope, Users, ArrowRight, KeyRound, Moon, Sun } from 'lucide-react';
+import { Sparkles, Lock, Mail, ArrowRight, AlertCircle, Moon, Sun } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  // Version 1 default: Doctor role
-  const [selectedRole, setSelectedRole] = useState('doctor');
-  const [emailOrId, setEmailOrId] = useState('doctor@dentavision.ai');
-  const [password, setPassword] = useState('password123');
+  const [emailOrId, setEmailOrId] = useState('');
+  const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showForgotModal, setShowForgotModal] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSent, setForgotSent] = useState(false);
-
-  const handleRoleSelect = (roleKey) => {
-    setSelectedRole(roleKey);
-    if (roleKey === 'doctor') {
-      setEmailOrId('doctor@dentavision.ai');
-      setPassword('password123');
-    } else if (roleKey === 'reception') {
-      setEmailOrId('reception@dentavision.ai');
-      setPassword('password123');
-    }
-    setErrorMsg('');
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!emailOrId.trim()) {
-      setErrorMsg('Please enter your Staff ID or Email Address.');
+    const cleanEmail = emailOrId.trim();
+
+    if (!cleanEmail) {
+      setErrorMsg('Please enter your registered clinic email.');
       return;
     }
     if (!password) {
@@ -48,9 +33,14 @@ export const LoginPage = () => {
 
     setTimeout(() => {
       setIsLoading(false);
-      const res = login(emailOrId, password, selectedRole);
-      
-      // Route based on authenticated role (Admin is silently unlocked via credentials)
+      const res = login(cleanEmail, password);
+
+      if (!res.success) {
+        setErrorMsg(res.error || 'Authentication failed. Please verify your credentials.');
+        return;
+      }
+
+      // Route based on authenticated role automatically resolved from the email
       const redirectPath = 
         res.role === 'admin' ? '/admin' :
         res.role === 'reception' ? '/reception' : '/doctor';
@@ -59,15 +49,10 @@ export const LoginPage = () => {
     }, 450);
   };
 
-  const handleForgotSubmit = (e) => {
+  const handleOpenForgotPassword = (e) => {
     e.preventDefault();
-    if (!forgotEmail.trim()) return;
-    setForgotSent(true);
-    setTimeout(() => {
-      setShowForgotModal(false);
-      setForgotSent(false);
-      setForgotEmail('');
-    }, 2000);
+    // Opens Forgot Password recovery workflow in a new browser tab as requested
+    window.open('#/forgot-password', '_blank');
   };
 
   return (
@@ -147,19 +132,19 @@ export const LoginPage = () => {
         className="glass-card fade-in"
         style={{
           width: '100%',
-          maxWidth: '460px',
-          padding: '36px',
+          maxWidth: '440px',
+          padding: '40px 36px',
           boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--border-glass)',
         }}
       >
         {/* Header Branding */}
-        <div style={{ textAlign: 'center', marginBottom: '26px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
           <div
             style={{
-              width: '54px',
-              height: '54px',
+              width: '56px',
+              height: '56px',
               borderRadius: '16px',
               background: 'var(--primary-teal)',
               display: 'inline-flex',
@@ -179,97 +164,65 @@ export const LoginPage = () => {
           </p>
         </div>
 
-        {/* Workstation Profile Selector — Exactly 2 roles for Version 1 */}
-        <div style={{ marginBottom: '22px' }}>
-          <label className="input-label" style={{ textAlign: 'center', marginBottom: '10px' }}>
-            Select Workstation Role
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            
-            {/* Doctor Role */}
-            <button
-              type="button"
-              onClick={() => handleRoleSelect('doctor')}
-              style={{
-                padding: '12px 10px',
-                borderRadius: '10px',
-                border: selectedRole === 'doctor' ? '2px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'doctor' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
-                color: selectedRole === 'doctor' ? 'var(--primary-teal)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <Stethoscope size={20} color={selectedRole === 'doctor' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span style={{ fontSize: '13px', fontWeight: '700' }}>Doctor</span>
-              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Clinical & AI Viewer</span>
-            </button>
-
-            {/* Receptionist Role */}
-            <button
-              type="button"
-              onClick={() => handleRoleSelect('reception')}
-              style={{
-                padding: '12px 10px',
-                borderRadius: '10px',
-                border: selectedRole === 'reception' ? '2px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
-                color: selectedRole === 'reception' ? 'var(--primary-teal)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <Users size={20} color={selectedRole === 'reception' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span style={{ fontSize: '13px', fontWeight: '700' }}>Receptionist</span>
-              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Intake & Queue</span>
-            </button>
-
-          </div>
-        </div>
-
         {/* Error Alert */}
         {errorMsg && (
-          <div className="badge badge-error" style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>
-            {errorMsg}
+          <div
+            className="badge badge-error"
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              marginBottom: '18px',
+              fontSize: '12.5px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px',
+              lineHeight: '1.4',
+            }}
+          >
+            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Clean Login Form: Only Email and Password */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div>
-            <label className="input-label">Staff ID or Email Address</label>
+            <label className="input-label">Clinic Email Address</label>
             <div style={{ position: 'relative' }}>
               <Mail size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
-                type="text"
+                type="email"
                 className="input-field"
-                placeholder="e.g. doctor@dentavision.ai or staff ID"
+                placeholder="e.g. doctor@dentavision.ai or staff email"
                 value={emailOrId}
                 onChange={(e) => setEmailOrId(e.target.value)}
                 style={{ paddingLeft: '38px' }}
                 autoComplete="username"
+                autoFocus
+                required
               />
             </div>
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="input-label" style={{ marginBottom: 0 }}>Account Password</label>
-              <button
-                type="button"
-                onClick={() => setShowForgotModal(true)}
-                style={{ background: 'none', border: 'none', color: 'var(--primary-teal)', fontSize: '12px', cursor: 'pointer' }}
+              <label className="input-label" style={{ marginBottom: 0 }}>Password</label>
+              <a
+                href="#/forgot-password"
+                onClick={handleOpenForgotPassword}
+                style={{
+                  color: 'var(--primary-teal)',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s ease',
+                }}
+                title="Open password recovery tab"
               >
                 Forgot Password?
-              </button>
+              </a>
             </div>
             <div style={{ position: 'relative' }}>
               <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
@@ -281,6 +234,7 @@ export const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ paddingLeft: '38px' }}
                 autoComplete="current-password"
+                required
               />
             </div>
           </div>
@@ -289,7 +243,7 @@ export const LoginPage = () => {
             type="submit"
             className="btn-primary"
             disabled={isLoading}
-            style={{ width: '100%', height: '44px', marginTop: '8px', fontSize: '15px' }}
+            style={{ width: '100%', height: '46px', marginTop: '6px', fontSize: '15px', fontWeight: '600' }}
           >
             {isLoading ? (
               <span>Authenticating...</span>
@@ -302,71 +256,53 @@ export const LoginPage = () => {
           </button>
         </form>
 
-        <p style={{ fontSize: '11px', textAlign: 'center', color: 'var(--text-muted)', marginTop: '16px' }}>
-          Testing Demo: Select Doctor or Receptionist above to auto-fill verified credentials.
-        </p>
-      </div>
-
-      {/* Forgot Password Modal Overlay */}
-      {showForgotModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'var(--backdrop-blur)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            padding: '20px',
-          }}
-        >
-          <div className="glass-card fade-in" style={{ width: '100%', maxWidth: '400px', padding: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <KeyRound size={22} color="var(--primary-teal)" />
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)' }}>Reset Password</h3>
-            </div>
-
-            {forgotSent ? (
-              <div className="badge badge-success" style={{ width: '100%', padding: '12px', borderRadius: '8px' }}>
-                Reset instructions sent to your clinic email!
-              </div>
-            ) : (
-              <form onSubmit={handleForgotSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  Enter your registered clinic staff email. An IT security code will be dispatched immediately.
-                </p>
-                <input
-                  type="email"
-                  className="input-field"
-                  placeholder="e.g. staff@dentavision.ai"
-                  value={forgotEmail}
-                  onChange={(e) => setForgotEmail(e.target.value)}
-                  required
-                />
-                <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotModal(false)}
-                    className="btn-secondary"
-                    style={{ flex: 1 }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    style={{ flex: 1 }}
-                  >
-                    Send Code
-                  </button>
-                </div>
-              </form>
-            )}
+        {/* Demo Helper Links */}
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', textAlign: 'center' }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+            Registered Clinic Accounts (Quick Fill):
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setEmailOrId('doctor@dentavision.ai');
+                setPassword('password123');
+                setErrorMsg('');
+              }}
+              style={{
+                fontSize: '11px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--btn-secondary-bg)',
+                border: '1px solid var(--border-glass)',
+                color: 'var(--primary-teal)',
+                cursor: 'pointer',
+              }}
+            >
+              Doctor Account
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEmailOrId('reception@dentavision.ai');
+                setPassword('password123');
+                setErrorMsg('');
+              }}
+              style={{
+                fontSize: '11px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                backgroundColor: 'var(--btn-secondary-bg)',
+                border: '1px solid var(--border-glass)',
+                color: 'var(--secondary-cyan)',
+                cursor: 'pointer',
+              }}
+            >
+              Receptionist Account
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

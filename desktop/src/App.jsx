@@ -13,6 +13,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 
 // Reception Pages
 import { ReceptionDashboard } from './pages/reception/ReceptionDashboard';
+import { PatientRegistrationPage } from './pages/reception/PatientRegistrationPage';
 import { PatientSearchPage } from './pages/reception/PatientSearchPage';
 
 // Doctor Pages
@@ -28,11 +29,23 @@ import { TimelineModule } from './pages/doctor/TimelineModule';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { HealthCheckScreen } from './pages/admin/HealthCheckScreen';
 
+// User Profile Page
+import { ProfilePage } from './pages/profile/ProfilePage';
+
 const DefaultRoleRedirect = () => {
   const { user } = useAuth();
   if (user?.role === 'reception') return <Navigate to="/reception" replace />;
   if (user?.role === 'admin') return <Navigate to="/admin" replace />;
   return <Navigate to="/doctor" replace />;
+};
+
+// Route guard restricting clinical diagnostic workspace to Doctors and Admins
+const ClinicalDoctorRoute = ({ children }) => {
+  const { user } = useAuth();
+  if (user?.role === 'reception') {
+    return <Navigate to="/reception" replace />;
+  }
+  return children;
 };
 
 export const App = () => {
@@ -53,18 +66,29 @@ export const App = () => {
                     {/* Dynamic role-based landing */}
                     <Route path="/" element={<DefaultRoleRedirect />} />
 
+                    {/* Workstation User Profile Route */}
+                    <Route path="/profile" element={<ProfilePage />} />
+
                     {/* Reception Routes */}
                     <Route path="/reception" element={<ReceptionDashboard />} />
+                    <Route path="/reception/register" element={<PatientRegistrationPage />} />
                     <Route path="/reception/search" element={<PatientSearchPage />} />
 
-                    {/* Doctor Routes */}
+                    {/* Doctor Clinical Routes */}
                     <Route path="/doctor" element={<DoctorDashboard />} />
-                    <Route path="/workspace" element={<PatientWorkspace />} />
-                    <Route path="/doctor/clinical-visit" element={<ClinicalVisitScreen />} />
-                    <Route path="/doctor/prescriptions" element={<PrescriptionModule />} />
-                    <Route path="/doctor/reports" element={<ReportModule />} />
-                    <Route path="/doctor/documents" element={<DocumentsModule />} />
-                    <Route path="/doctor/timeline" element={<TimelineModule />} />
+                    <Route 
+                      path="/workspace" 
+                      element={
+                        <ClinicalDoctorRoute>
+                          <PatientWorkspace />
+                        </ClinicalDoctorRoute>
+                      } 
+                    />
+                    <Route path="/doctor/clinical-visit" element={<ClinicalDoctorRoute><ClinicalVisitScreen /></ClinicalDoctorRoute>} />
+                    <Route path="/doctor/prescriptions" element={<ClinicalDoctorRoute><PrescriptionModule /></ClinicalDoctorRoute>} />
+                    <Route path="/doctor/reports" element={<ClinicalDoctorRoute><ReportModule /></ClinicalDoctorRoute>} />
+                    <Route path="/doctor/documents" element={<ClinicalDoctorRoute><DocumentsModule /></ClinicalDoctorRoute>} />
+                    <Route path="/doctor/timeline" element={<ClinicalDoctorRoute><TimelineModule /></ClinicalDoctorRoute>} />
 
                     {/* Admin Routes */}
                     <Route path="/admin" element={<AdminDashboard />} />

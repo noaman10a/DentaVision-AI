@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
-import { Search, UserCheck, Calendar, Phone, Mail, FileText, ArrowRight, Filter, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { Search, UserCheck, Calendar, Phone, Mail, FileText, ArrowRight, Filter, ShieldAlert, UploadCloud } from 'lucide-react';
+import { IntakeUploadModal } from './IntakeUploadModal';
 
 export const PatientSearchPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { patients, searchQuery, setSearchQuery, selectPatientById } = usePatients();
+  const [selectedPatientForUpload, setSelectedPatientForUpload] = useState(null);
+
+  const isReception = user?.role === 'reception';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -16,7 +22,10 @@ export const PatientSearchPage = () => {
             Patient Directory & Search Engine
           </h2>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            Search registered clinic records by Patient ID, Name, or Phone Number
+            {isReception 
+              ? 'Find clinic patients and attach intake radiographs or doctor referral documents'
+              : 'Search registered clinic records by Patient ID, Name, or Phone Number to launch clinical workspace'
+            }
           </p>
         </div>
       </div>
@@ -99,24 +108,53 @@ export const PatientSearchPage = () => {
               {/* Card Footer Actions */}
               <div style={{ paddingTop: '12px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  {patient.visits?.length || 0} Clinical Visits
+                  {isReception ? `${patient.xrayCount || 0} X-rays attached` : `${patient.visits?.length || 0} Clinical Visits`}
                 </span>
-                <button
-                  onClick={() => {
-                    selectPatientById(patient.id);
-                    navigate('/workspace');
-                  }}
-                  className="btn-primary"
-                  style={{ padding: '6px 14px', fontSize: '12px' }}
-                >
-                  <span>Open Workspace</span>
-                  <ArrowRight size={14} />
-                </button>
+
+                {isReception ? (
+                  <button
+                    onClick={() => setSelectedPatientForUpload(patient)}
+                    className="btn-secondary"
+                    style={{ 
+                      padding: '6px 14px', 
+                      fontSize: '12px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '6px',
+                      color: 'var(--primary-teal)',
+                      borderColor: 'var(--primary-teal)'
+                    }}
+                    title="Attach X-rays and referral notes for doctor"
+                  >
+                    <UploadCloud size={14} />
+                    <span>Attach Files / X-ray</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      selectPatientById(patient.id);
+                      navigate('/workspace');
+                    }}
+                    className="btn-primary"
+                    style={{ padding: '6px 14px', fontSize: '12px' }}
+                  >
+                    <span>Open Workspace</span>
+                    <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Intake Upload Modal */}
+      {selectedPatientForUpload && (
+        <IntakeUploadModal
+          patient={selectedPatientForUpload}
+          onClose={() => setSelectedPatientForUpload(null)}
+        />
+      )}
     </div>
   );
 };

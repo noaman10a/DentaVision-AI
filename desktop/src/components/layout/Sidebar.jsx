@@ -1,65 +1,55 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Users, 
   UserPlus, 
   Search, 
-  Stethoscope, 
   FolderHeart, 
-  FileText, 
-  Pill, 
-  FolderOpen, 
-  History, 
   ShieldAlert, 
   Activity, 
   LogOut, 
   ChevronLeft, 
   ChevronRight,
   Sparkles,
-  LayoutDashboard
+  LayoutDashboard,
+  UserCircle
 } from 'lucide-react';
 
 export const Sidebar = () => {
   const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const getNavItems = () => {
     switch (user?.role) {
       case 'reception':
         return [
-          { label: 'Dashboard', path: '/reception', icon: LayoutDashboard },
+          { label: 'Reception Queue', path: '/reception', icon: LayoutDashboard },
           { label: 'Register Patient', path: '/reception/register', icon: UserPlus },
           { label: 'Search Patients', path: '/reception/search', icon: Search },
-          { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
+          { label: 'My Profile', path: '/profile', icon: UserCircle },
         ];
       case 'doctor':
         return [
           { label: 'Doctor Dashboard', path: '/doctor', icon: LayoutDashboard },
           { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
-          { label: 'Clinical Visit', path: '/doctor/clinical-visit', icon: Stethoscope },
-          { label: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
-          { label: 'Reports', path: '/doctor/reports', icon: FileText },
-          { label: 'Documents', path: '/doctor/documents', icon: FolderOpen },
-          { label: 'Timeline', path: '/doctor/timeline', icon: History },
+          { label: 'Patient Directory', path: '/reception/search', icon: Search },
+          { label: 'My Profile', path: '/profile', icon: UserCircle },
         ];
       case 'admin':
         return [
           { label: 'Admin Dashboard', path: '/admin', icon: ShieldAlert },
           { label: 'Health Status', path: '/admin/health', icon: Activity },
-          { label: 'User Directory', path: '/reception/search', icon: Users },
-          { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
+          { label: 'Patient Directory', path: '/reception/search', icon: Search },
+          { label: 'My Profile', path: '/profile', icon: UserCircle },
         ];
       default:
         return [
           { label: 'Doctor Dashboard', path: '/doctor', icon: LayoutDashboard },
           { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
-          { label: 'Clinical Visit', path: '/doctor/clinical-visit', icon: Stethoscope },
-          { label: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
-          { label: 'Reports', path: '/doctor/reports', icon: FileText },
-          { label: 'Documents', path: '/doctor/documents', icon: FolderOpen },
-          { label: 'Timeline', path: '/doctor/timeline', icon: History },
+          { label: 'Patient Directory', path: '/reception/search', icon: Search },
+          { label: 'My Profile', path: '/profile', icon: UserCircle },
         ];
     }
   };
@@ -144,6 +134,7 @@ export const Sidebar = () => {
             alignItems: 'center',
             justifyContent: 'center',
           }}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
           {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
@@ -213,18 +204,34 @@ export const Sidebar = () => {
         </ul>
       </nav>
 
-      {/* User Profile Footer & Logout */}
+      {/* User Profile Footer & Logout (Clicking Profile Card opens /profile) */}
       <div
         style={{
-          padding: '16px',
+          padding: '12px 14px',
           borderTop: '1px solid var(--border-glass)',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '8px',
           justifyContent: isCollapsed ? 'center' : 'space-between',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div 
+          onClick={() => navigate('/profile')}
+          title="Click to View & Edit Profile"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px', 
+            cursor: 'pointer',
+            padding: '6px 8px',
+            borderRadius: '8px',
+            flex: 1,
+            overflow: 'hidden',
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--btn-secondary-bg)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+        >
           <img
             src={user?.avatar}
             alt={user?.name}
@@ -234,6 +241,7 @@ export const Sidebar = () => {
               borderRadius: '50%',
               objectFit: 'cover',
               border: '2px solid var(--primary-teal)',
+              flexShrink: 0,
             }}
           />
           {!isCollapsed && (
@@ -241,8 +249,8 @@ export const Sidebar = () => {
               <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                 {user?.name}
               </p>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                {user?.id}
+              <p style={{ fontSize: '11px', color: 'var(--primary-teal)', whiteSpace: 'nowrap' }}>
+                View Profile →
               </p>
             </div>
           )}
@@ -251,21 +259,27 @@ export const Sidebar = () => {
         {!isCollapsed && (
           <button
             onClick={logout}
-            title="Logout"
+            title="Sign Out"
             style={{
               background: 'none',
               border: 'none',
               color: 'var(--text-muted)',
               cursor: 'pointer',
-              padding: '6px',
+              padding: '8px',
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'color 0.2s',
+              transition: 'color 0.2s, background 0.2s',
             }}
-            onMouseOver={(e) => (e.currentTarget.style.color = 'var(--status-error)')}
-            onMouseOut={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = 'var(--status-error)';
+              e.currentTarget.style.backgroundColor = 'var(--btn-secondary-bg)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = 'var(--text-muted)';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             <LogOut size={18} />
           </button>

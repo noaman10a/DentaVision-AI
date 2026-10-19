@@ -12,13 +12,19 @@ export const initialRoles = {
 const DEFAULT_REGISTERED_USERS = {
   'noaman@batman.com': {
     id: 'ADM-001',
-    name: 'Noaman (Administrator)',
+    name: 'Noaman Nazeer Ahamed',
     role: 'admin',
     roleLabel: 'System Administrator',
     email: 'noaman@batman.com',
     password: 'imbatman',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Security Command',
+    phone: '+91 98800 54321',
+    regNo: 'SYS-ADMIN-001',
+    qualification: 'B.E. Computer Science & Engineering',
+    department: 'AI Diagnostic Infrastructure & Hospital IT',
+    suite: 'Security Hub 01',
+    bio: 'Technical Lead & AI System Architect overseeing neural network deployments and clinical PACS integrations.',
   },
   'doctor@dentavision.ai': {
     id: 'DOC-102',
@@ -29,6 +35,12 @@ const DEFAULT_REGISTERED_USERS = {
     password: 'password123',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Suite 4',
+    phone: '+91 98450 12345',
+    regNo: 'DCI-KA-2021-08491',
+    qualification: 'BDS, MDS (Oral & Maxillofacial Surgery)',
+    department: 'Department of Oral Surgery & Implantology',
+    suite: 'Consultation Operatory 4A',
+    bio: 'Specialist in restorative endodontics, dental implantology, and panoramic AI diagnostic evaluation.',
   },
   'twahir.doctor@dentavision.ai': {
     id: 'DOC-102',
@@ -39,6 +51,12 @@ const DEFAULT_REGISTERED_USERS = {
     password: 'password123',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Suite 4',
+    phone: '+91 98450 12345',
+    regNo: 'DCI-KA-2021-08491',
+    qualification: 'BDS, MDS (Oral & Maxillofacial Surgery)',
+    department: 'Department of Oral Surgery & Implantology',
+    suite: 'Consultation Operatory 4A',
+    bio: 'Specialist in restorative endodontics, dental implantology, and panoramic AI diagnostic evaluation.',
   },
   'reception@dentavision.ai': {
     id: 'STF-001',
@@ -49,6 +67,12 @@ const DEFAULT_REGISTERED_USERS = {
     password: 'password123',
     avatar: 'https://images.unsplash.com/photo-1594824813566-88855ce78961?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Block A',
+    phone: '+91 98765 67890',
+    regNo: 'EMP-REC-2024-009',
+    qualification: 'B.Sc. Healthcare Administration',
+    department: 'Patient Intake & Clinical Front Desk',
+    suite: 'Front Desk Station 1',
+    bio: 'Lead reception coordinator overseeing patient scheduling, digital X-ray intake, and queue prioritization.',
   },
   'sneha.reception@dentavision.ai': {
     id: 'STF-001',
@@ -59,6 +83,12 @@ const DEFAULT_REGISTERED_USERS = {
     password: 'password123',
     avatar: 'https://images.unsplash.com/photo-1594824813566-88855ce78961?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Block A',
+    phone: '+91 98765 67890',
+    regNo: 'EMP-REC-2024-009',
+    qualification: 'B.Sc. Healthcare Administration',
+    department: 'Patient Intake & Clinical Front Desk',
+    suite: 'Front Desk Station 1',
+    bio: 'Lead reception coordinator overseeing patient scheduling, digital X-ray intake, and queue prioritization.',
   },
 };
 
@@ -152,6 +182,12 @@ export const AuthProvider = ({ children }) => {
       email: matchedAccount.email,
       avatar: matchedAccount.avatar,
       clinic: matchedAccount.clinic,
+      phone: matchedAccount.phone || '+91 98765 43210',
+      regNo: matchedAccount.regNo || 'DCI-REG-2026',
+      qualification: matchedAccount.qualification || 'BDS, MDS',
+      department: matchedAccount.department || 'Clinical Dentistry',
+      suite: matchedAccount.suite || 'Operatory 1',
+      bio: matchedAccount.bio || 'Attending clinical practitioner at DentaVision AI dental care.',
     };
 
     setUser(sessionUser);
@@ -163,6 +199,38 @@ export const AuthProvider = ({ children }) => {
     }
 
     return { success: true, role: sessionUser.role, user: sessionUser };
+  };
+
+  // Update profile details for the active user
+  const updateUserProfile = (profileUpdates) => {
+    if (!user || !user.email) return { success: false, error: 'No active session' };
+
+    const cleanEmail = user.email.toLowerCase().trim();
+    const updatedUser = {
+      ...user,
+      ...profileUpdates,
+    };
+
+    setUser(updatedUser);
+    try {
+      sessionStorage.setItem('dentavision_user', JSON.stringify(updatedUser));
+    } catch (e) {
+      console.warn('Could not persist updated session', e);
+    }
+
+    // Also update in registeredUsers registry so changes persist across sessions
+    setRegisteredUsers(prev => {
+      if (!prev[cleanEmail]) return prev;
+      return {
+        ...prev,
+        [cleanEmail]: {
+          ...prev[cleanEmail],
+          ...profileUpdates,
+        }
+      };
+    });
+
+    return { success: true, user: updatedUser };
   };
 
   // Reset password handler for verified OTP flow
@@ -218,6 +286,7 @@ export const AuthProvider = ({ children }) => {
         isEmailRegistered,
         getUserByEmail,
         resetPassword,
+        updateUserProfile,
         roles: initialRoles,
       }}
     >

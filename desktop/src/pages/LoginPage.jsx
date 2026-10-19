@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { Sparkles, Lock, Mail, ArrowRight, AlertCircle, Moon, Sun } from 'lucide-react';
+import { Sparkles, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
@@ -69,64 +67,6 @@ export const LoginPage = () => {
         transition: 'var(--transition-theme)',
       }}
     >
-      {/* Top Right Theme Toggle */}
-      <button
-        onClick={toggleTheme}
-        style={{
-          position: 'absolute',
-          top: '24px',
-          right: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: 'var(--btn-secondary-bg)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: 'var(--radius-full)',
-          padding: '6px 14px',
-          color: 'var(--text-primary)',
-          cursor: 'pointer',
-          boxShadow: 'var(--shadow-sm)',
-          transition: 'var(--transition-theme)',
-          outline: 'none',
-          zIndex: 10,
-        }}
-        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {theme === 'dark' ? (
-          <>
-            <Moon size={16} color="var(--primary-teal)" />
-            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Dark Mode</span>
-          </>
-        ) : (
-          <>
-            <Sun size={16} color="#f59e0b" />
-            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Light Mode</span>
-          </>
-        )}
-        <div
-          style={{
-            width: '30px',
-            height: '16px',
-            borderRadius: '8px',
-            backgroundColor: 'var(--primary-teal)',
-            position: 'relative',
-            marginLeft: '2px',
-          }}
-        >
-          <div
-            style={{
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              position: 'absolute',
-              top: '2px',
-              left: theme === 'dark' ? '15px' : '2px',
-              transition: 'left 0.25s ease',
-            }}
-          />
-        </div>
-      </button>
 
       <div
         className="glass-card fade-in"
@@ -255,53 +195,6 @@ export const LoginPage = () => {
             )}
           </button>
         </form>
-
-        {/* Demo Helper Links */}
-        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)', textAlign: 'center' }}>
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-            Registered Clinic Accounts (Quick Fill):
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => {
-                setEmailOrId('doctor@dentavision.ai');
-                setPassword('password123');
-                setErrorMsg('');
-              }}
-              style={{
-                fontSize: '11px',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'var(--btn-secondary-bg)',
-                border: '1px solid var(--border-glass)',
-                color: 'var(--primary-teal)',
-                cursor: 'pointer',
-              }}
-            >
-              Doctor Account
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setEmailOrId('reception@dentavision.ai');
-                setPassword('password123');
-                setErrorMsg('');
-              }}
-              style={{
-                fontSize: '11px',
-                padding: '4px 10px',
-                borderRadius: '6px',
-                backgroundColor: 'var(--btn-secondary-bg)',
-                border: '1px solid var(--border-glass)',
-                color: 'var(--secondary-cyan)',
-                cursor: 'pointer',
-              }}
-            >
-              Receptionist Account
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

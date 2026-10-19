@@ -208,6 +208,26 @@ export const PatientProvider = ({ children }) => {
     }));
   };
 
+  const addPatientDocument = (patientId, docData) => {
+    const isXray = (docData.category || '').toLowerCase().includes('x-ray') || (docData.category || '').toLowerCase().includes('radiograph');
+    setPatients(prev => prev.map(p => {
+      if (p.id === patientId) {
+        const newDocs = [docData, ...(p.documents || [])];
+        const updated = {
+          ...p,
+          status: isXray ? 'Awaiting Review' : p.status,
+          xrayCount: isXray ? (p.xrayCount || 0) + 1 : (p.xrayCount || 0),
+          documents: newDocs
+        };
+        if (activePatient?.id === patientId) {
+          setActivePatient(updated);
+        }
+        return updated;
+      }
+      return p;
+    }));
+  };
+
   const filteredPatients = patients.filter(p => {
     const q = searchQuery.toLowerCase();
     return (
@@ -222,6 +242,7 @@ export const PatientProvider = ({ children }) => {
       value={{
         patients: filteredPatients,
         allPatients: patients,
+        setPatients,
         activePatient,
         setActivePatient,
         selectPatientById,
@@ -230,6 +251,7 @@ export const PatientProvider = ({ children }) => {
         registerPatient,
         addClinicalVisit,
         addPatientReport,
+        addPatientDocument,
         fetchPatients
       }}
     >

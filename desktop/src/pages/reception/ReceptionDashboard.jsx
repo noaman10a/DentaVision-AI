@@ -7,16 +7,19 @@ import {
   Search, 
   Calendar, 
   Clock, 
-  CreditCard, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  UploadCloud,
+  CheckCircle2
 } from 'lucide-react';
 import { PatientRegistrationModal } from './PatientRegistrationModal';
+import { IntakeUploadModal } from './IntakeUploadModal';
 
 export const ReceptionDashboard = () => {
   const navigate = useNavigate();
-  const { patients, selectPatientById } = usePatients();
+  const { patients } = usePatients();
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [selectedPatientForUpload, setSelectedPatientForUpload] = useState(null);
 
   const stats = [
     { title: "Today's Patients", count: "14", change: "+3 from yesterday", icon: Users, color: 'var(--primary-teal)' },
@@ -57,7 +60,7 @@ export const ReceptionDashboard = () => {
         {/* Action Button Grid */}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
-            onClick={() => setShowRegisterModal(true)}
+            onClick={() => navigate('/reception/register')}
             className="btn-primary"
           >
             <UserPlus size={18} />
@@ -73,24 +76,16 @@ export const ReceptionDashboard = () => {
           </button>
 
           <button
-            onClick={() => alert('Appointment Scheduling module loaded.')}
+            onClick={() => alert('Appointment Scheduling calendar loaded.')}
             className="btn-secondary"
           >
             <Calendar size={18} />
             <span>Schedule</span>
           </button>
-
-          <button
-            onClick={() => alert('Billing & Payment receipts module loaded.')}
-            className="btn-secondary"
-          >
-            <CreditCard size={18} />
-            <span>Payments</span>
-          </button>
         </div>
       </div>
 
-      {/* Metrics Cards */}
+      {/* Metrics Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         {stats.map((stat, i) => {
           const Icon = stat.icon;
@@ -121,7 +116,7 @@ export const ReceptionDashboard = () => {
               onClick={() => navigate('/reception/search')}
               style={{ background: 'none', border: 'none', color: 'var(--primary-teal)', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
-              <span>View All ({patients.length})</span>
+              <span>View Directory ({patients.length})</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -134,7 +129,7 @@ export const ReceptionDashboard = () => {
                   <th style={{ padding: '10px 12px' }}>Full Name</th>
                   <th style={{ padding: '10px 12px' }}>Phone</th>
                   <th style={{ padding: '10px 12px' }}>Status</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>Intake Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -153,14 +148,21 @@ export const ReceptionDashboard = () => {
                     </td>
                     <td style={{ padding: '12px', textAlign: 'right' }}>
                       <button
-                        onClick={() => {
-                          selectPatientById(p.id);
-                          navigate('/workspace');
-                        }}
+                        onClick={() => setSelectedPatientForUpload(p)}
                         className="btn-secondary"
-                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                        style={{ 
+                          padding: '6px 12px', 
+                          fontSize: '12px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          color: 'var(--primary-teal)',
+                          borderColor: 'var(--primary-teal)'
+                        }}
+                        title="Upload intake radiograph or doctor referral files"
                       >
-                        Open Workspace
+                        <UploadCloud size={14} />
+                        <span>Attach Files / X-ray</span>
                       </button>
                     </td>
                   </tr>
@@ -201,6 +203,14 @@ export const ReceptionDashboard = () => {
       {/* Patient Registration Modal */}
       {showRegisterModal && (
         <PatientRegistrationModal onClose={() => setShowRegisterModal(false)} />
+      )}
+
+      {/* Intake File & Radiograph Upload Modal */}
+      {selectedPatientForUpload && (
+        <IntakeUploadModal
+          patient={selectedPatientForUpload}
+          onClose={() => setSelectedPatientForUpload(null)}
+        />
       )}
     </div>
   );

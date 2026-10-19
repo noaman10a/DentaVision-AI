@@ -53,6 +53,60 @@ export const TimelineModule = () => {
     }
   ];
 
+  const getTimelineEvents = () => {
+    const events = [];
+
+    // Reports logged
+    if (activePatient?.reports?.length > 0) {
+      activePatient.reports.forEach((rep, idx) => {
+        events.push({
+          id: `rep-${idx}`,
+          title: `Diagnostic Radiology Report (${rep.id || 'Issued'})`,
+          date: `${rep.date || new Date().toISOString().split('T')[0]} (Recent)`,
+          category: 'Report',
+          icon: FileText,
+          color: 'var(--secondary-cyan)',
+          desc: rep.notes || `Signed report finalized by ${rep.doctor || 'Dr. Twahir Mohammed'}.`
+        });
+      });
+    }
+
+    // Visits logged
+    if (activePatient?.visits?.length > 0) {
+      activePatient.visits.forEach((v, idx) => {
+        events.push({
+          id: `vis-${idx}`,
+          title: `Clinical Consultation (${v.id || 'Visit'})`,
+          date: v.date || new Date().toISOString().split('T')[0],
+          category: 'Clinical Visit',
+          icon: Stethoscope,
+          color: 'var(--accent-purple)',
+          desc: `Diagnosis: ${v.diagnosis || 'Dental Examination'} • Chief Complaint: ${v.chiefComplaint || 'Checkup'}`
+        });
+      });
+    }
+
+    // For default sample patient or if no events recorded yet, retain preloaded benchmark events
+    if (events.length === 0 || activePatient?.id === 'PT-2026-0705') {
+      return timelineEvents;
+    }
+
+    // Registration event at the base of timeline
+    events.push({
+      id: 'reg-0',
+      title: 'Initial Intake Registration',
+      date: activePatient?.lastVisit || new Date().toISOString().split('T')[0],
+      category: 'Registration',
+      icon: UserPlus,
+      color: 'var(--status-success)',
+      desc: `Patient ${activePatient?.name} (${activePatient?.id}) registered into DentaVision AI.`
+    });
+
+    return events;
+  };
+
+  const activeEvents = getTimelineEvents();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
@@ -73,10 +127,10 @@ export const TimelineModule = () => {
       {/* Interactive Vertical Timeline */}
       <div className="glass-card" style={{ padding: '32px' }}>
         <div style={{ position: 'relative', borderLeft: '2px dashed var(--border-glass)', paddingLeft: '28px', marginLeft: '12px' }}>
-          {timelineEvents.map((ev, index) => {
+          {activeEvents.map((ev, index) => {
             const Icon = ev.icon;
             return (
-              <div key={ev.id} style={{ position: 'relative', marginBottom: index === timelineEvents.length - 1 ? 0 : '32px' }}>
+              <div key={ev.id} style={{ position: 'relative', marginBottom: index === activeEvents.length - 1 ? 0 : '32px' }}>
                 {/* Timeline Point Dot */}
                 <div
                   style={{

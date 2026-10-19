@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { registerPatientApi, createVisitApi } from '../services/api';
 
 const PatientContext = createContext();
 
@@ -134,6 +135,13 @@ export const PatientProvider = ({ children }) => {
     };
     setPatients(prev => [createdPatient, ...prev]);
     setActivePatient(createdPatient);
+
+    // Asynchronously notify backend gateway
+    registerPatientApi({
+      ...newPatientData,
+      id: newId
+    }).catch(err => console.warn('Backend register sync warning:', err));
+
     return createdPatient;
   };
 
@@ -145,19 +153,51 @@ export const PatientProvider = ({ children }) => {
   };
 
   const addClinicalVisit = (patientId, visitData) => {
+    const newVisit = {
+      id: `VST-${Math.floor(100 + Math.random() * 900)}`,
+      date: new Date().toISOString().split('T')[0],
+      doctor: 'Dr. Twahir Mohammed',
+      ...visitData
+    };
     setPatients(prev => prev.map(p => {
       if (p.id === patientId) {
-        const newVisit = {
-          id: `VST-${Math.floor(100 + Math.random() * 900)}`,
-          date: new Date().toISOString().split('T')[0],
-          doctor: 'Dr. Twahir Mohammed',
-          ...visitData
-        };
         const updated = {
           ...p,
           lastVisit: newVisit.date,
           status: 'Reviewed',
-          visits: [newVisit, ...p.visits]
+          visits: [newVisit, ...(p.visits || [])]
+        };
+        if (activePatient?.id === patientId) {
+          setActivePatient(updated);
+        }
+        return updated;
+      }
+      return p;
+    }));
+
+    // Asynchronously sync visit with backend gateway
+    createVisitApi({
+      patientId,
+      chiefComplaint: visitData.chiefComplaint,
+      diagnosis: visitData.diagnosis,
+      treatmentPlan: visitData.treatmentPlan,
+      examination: visitData.examination,
+      date: newVisit.date
+    }).catch(err => console.warn('Backend visit sync warning:', err));
+  };
+
+  const addPatientReport = (patientId, reportData) => {
+    setPatients(prev => prev.map(p => {
+      if (p.id === patientId) {
+        const newReport = {
+          id: `REP-${Math.floor(1000 + Math.random() * 9000)}`,
+          date: new Date().toISOString().split('T')[0],
+          ...reportData
+        };
+        const updated = {
+          ...p,
+          reportsCount: (p.reportsCount || 0) + 1,
+          reports: [newReport, ...(p.reports || [])]
         };
         if (activePatient?.id === patientId) {
           setActivePatient(updated);
@@ -188,7 +228,8 @@ export const PatientProvider = ({ children }) => {
         searchQuery,
         setSearchQuery,
         registerPatient,
-        addClinicalVisit
+        addClinicalVisit,
+        addPatientReport
       }}
     >
       {children}

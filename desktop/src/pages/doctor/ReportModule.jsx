@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FileText, Save, Printer, Sparkles, CheckCircle2, Edit3, Share2 } from 'lucide-react';
 
 export const ReportModule = () => {
-  const { activePatient } = usePatients();
+  const { activePatient, addPatientReport } = usePatients();
   const { analysisResult } = useAI();
   const { user } = useAuth();
 
@@ -26,6 +26,14 @@ export const ReportModule = () => {
   }, [analysisResult, activePatient]);
 
   const handleSaveReport = () => {
+    if (activePatient && addPatientReport) {
+      addPatientReport(activePatient.id, {
+        notes: doctorNotes,
+        findingsCount: analysisResult?.findings?.length || 0,
+        xrayId: analysisResult?.xray_id || 'XRAY-2026-0042',
+        doctor: user?.name || 'Dr. Twahir Mohammed'
+      });
+    }
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
   };

@@ -51,16 +51,15 @@ export const Sidebar = () => {
           { label: 'User Directory', path: '/reception/search', icon: Users },
           { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
         ];
-      case 'assistant':
-      case 'hygienist':
-      case 'nurse':
-      case 'staff':
       default:
         return [
-          { label: 'Staff Workspace', path: '/workspace', icon: FolderHeart },
+          { label: 'Doctor Dashboard', path: '/doctor', icon: LayoutDashboard },
+          { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
           { label: 'Clinical Visit', path: '/doctor/clinical-visit', icon: Stethoscope },
-          { label: 'Search Patients', path: '/reception/search', icon: Search },
-          { label: 'Patient Timeline', path: '/doctor/timeline', icon: History },
+          { label: 'Prescriptions', path: '/doctor/prescriptions', icon: Pill },
+          { label: 'Reports', path: '/doctor/reports', icon: FileText },
+          { label: 'Documents', path: '/doctor/documents', icon: FolderOpen },
+          { label: 'Timeline', path: '/doctor/timeline', icon: History },
         ];
     }
   };

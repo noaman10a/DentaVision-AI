@@ -2,20 +2,34 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Sparkles, Shield, Lock, Mail, UserCheck, Stethoscope, Users, ArrowRight, KeyRound, Moon, Sun } from 'lucide-react';
+import { Sparkles, Lock, Mail, Stethoscope, Users, ArrowRight, KeyRound, Moon, Sun } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [emailOrId, setEmailOrId] = useState('twahir.doctor@dentavision.ai');
-  const [password, setPassword] = useState('password123');
+
+  // Version 1 default: Doctor role
   const [selectedRole, setSelectedRole] = useState('doctor');
+  const [emailOrId, setEmailOrId] = useState('doctor@dentavision.ai');
+  const [password, setPassword] = useState('password123');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
+
+  const handleRoleSelect = (roleKey) => {
+    setSelectedRole(roleKey);
+    if (roleKey === 'doctor') {
+      setEmailOrId('doctor@dentavision.ai');
+      setPassword('password123');
+    } else if (roleKey === 'reception') {
+      setEmailOrId('reception@dentavision.ai');
+      setPassword('password123');
+    }
+    setErrorMsg('');
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,14 +48,15 @@ export const LoginPage = () => {
 
     setTimeout(() => {
       setIsLoading(false);
-      login(emailOrId, password, selectedRole);
+      const res = login(emailOrId, password, selectedRole);
       
+      // Route based on authenticated role (Admin is silently unlocked via credentials)
       const redirectPath = 
-        selectedRole === 'reception' ? '/reception' :
-        selectedRole === 'admin' ? '/admin' :
-        selectedRole === 'assistant' || selectedRole === 'staff' ? '/workspace' : '/doctor';
+        res.role === 'admin' ? '/admin' :
+        res.role === 'reception' ? '/reception' : '/doctor';
+      
       navigate(redirectPath);
-    }, 600);
+    }, 450);
   };
 
   const handleForgotSubmit = (e) => {
@@ -69,7 +84,7 @@ export const LoginPage = () => {
         transition: 'var(--transition-theme)',
       }}
     >
-      {/* Top Right Theme Toggle for Login Screen */}
+      {/* Top Right Theme Toggle */}
       <button
         onClick={toggleTheme}
         style={{
@@ -132,7 +147,7 @@ export const LoginPage = () => {
         className="glass-card fade-in"
         style={{
           width: '100%',
-          maxWidth: '480px',
+          maxWidth: '460px',
           padding: '36px',
           boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
           borderRadius: 'var(--radius-lg)',
@@ -140,7 +155,7 @@ export const LoginPage = () => {
         }}
       >
         {/* Header Branding */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '26px' }}>
           <div
             style={{
               width: '54px',
@@ -164,97 +179,59 @@ export const LoginPage = () => {
           </p>
         </div>
 
-        {/* Role Quick Selector */}
-        <div style={{ marginBottom: '20px' }}>
-          <label className="input-label" style={{ textAlign: 'center', marginBottom: '8px' }}>Select Workstation Role Profile</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+        {/* Workstation Profile Selector — Exactly 2 roles for Version 1 */}
+        <div style={{ marginBottom: '22px' }}>
+          <label className="input-label" style={{ textAlign: 'center', marginBottom: '10px' }}>
+            Select Workstation Role
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            
+            {/* Doctor Role */}
             <button
               type="button"
-              onClick={() => { setSelectedRole('reception'); setEmailOrId('sneha.reception@dentavision.ai'); }}
+              onClick={() => handleRoleSelect('doctor')}
               style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: selectedRole === 'reception' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
-                color: selectedRole === 'reception' ? 'var(--primary-teal)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
-              }}
-            >
-              <Users size={16} color={selectedRole === 'reception' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span>Reception</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => { setSelectedRole('doctor'); setEmailOrId('twahir.doctor@dentavision.ai'); }}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: selectedRole === 'doctor' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
+                padding: '12px 10px',
+                borderRadius: '10px',
+                border: selectedRole === 'doctor' ? '2px solid var(--primary-teal)' : '1px solid var(--border-glass)',
                 backgroundColor: selectedRole === 'doctor' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
                 color: selectedRole === 'doctor' ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
+                gap: '6px',
+                transition: 'all 0.2s ease',
               }}
             >
-              <Stethoscope size={16} color={selectedRole === 'doctor' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span>Doctor</span>
+              <Stethoscope size={20} color={selectedRole === 'doctor' ? 'var(--primary-teal)' : 'currentColor'} />
+              <span style={{ fontSize: '13px', fontWeight: '700' }}>Doctor</span>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Clinical & AI Viewer</span>
             </button>
 
+            {/* Receptionist Role */}
             <button
               type="button"
-              onClick={() => { setSelectedRole('assistant'); setEmailOrId('assistant@dentavision.ai'); }}
+              onClick={() => handleRoleSelect('reception')}
               style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: selectedRole === 'assistant' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'assistant' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
-                color: selectedRole === 'assistant' ? 'var(--primary-teal)' : 'var(--text-secondary)',
+                padding: '12px 10px',
+                borderRadius: '10px',
+                border: selectedRole === 'reception' ? '2px solid var(--primary-teal)' : '1px solid var(--border-glass)',
+                backgroundColor: selectedRole === 'reception' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
+                color: selectedRole === 'reception' ? 'var(--primary-teal)' : 'var(--text-secondary)',
                 cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
+                gap: '6px',
+                transition: 'all 0.2s ease',
               }}
             >
-              <UserCheck size={16} color={selectedRole === 'assistant' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span>Assistant</span>
+              <Users size={20} color={selectedRole === 'reception' ? 'var(--primary-teal)' : 'currentColor'} />
+              <span style={{ fontSize: '13px', fontWeight: '700' }}>Receptionist</span>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Intake & Queue</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => { setSelectedRole('admin'); setEmailOrId('admin@dentavision.ai'); }}
-              style={{
-                padding: '8px 4px',
-                borderRadius: '8px',
-                border: selectedRole === 'admin' ? '1px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                backgroundColor: selectedRole === 'admin' ? 'var(--primary-teal-glow)' : 'var(--btn-secondary-bg)',
-                color: selectedRole === 'admin' ? 'var(--primary-teal)' : 'var(--text-secondary)',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '11px',
-                fontWeight: '600',
-              }}
-            >
-              <Shield size={16} color={selectedRole === 'admin' ? 'var(--primary-teal)' : 'currentColor'} />
-              <span>Admin</span>
-            </button>
           </div>
         </div>
 
@@ -274,10 +251,11 @@ export const LoginPage = () => {
               <input
                 type="text"
                 className="input-field"
-                placeholder="e.g. DOC-102 or staff@dentavision.ai"
+                placeholder="e.g. doctor@dentavision.ai or staff ID"
                 value={emailOrId}
                 onChange={(e) => setEmailOrId(e.target.value)}
                 style={{ paddingLeft: '38px' }}
+                autoComplete="username"
               />
             </div>
           </div>
@@ -302,6 +280,7 @@ export const LoginPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ paddingLeft: '38px' }}
+                autoComplete="current-password"
               />
             </div>
           </div>
@@ -322,6 +301,10 @@ export const LoginPage = () => {
             )}
           </button>
         </form>
+
+        <p style={{ fontSize: '11px', textAlign: 'center', color: 'var(--text-muted)', marginTop: '16px' }}>
+          Testing Demo: Select Doctor or Receptionist above to auto-fill verified credentials.
+        </p>
       </div>
 
       {/* Forgot Password Modal Overlay */}
@@ -350,25 +333,33 @@ export const LoginPage = () => {
                 Reset instructions sent to your clinic email!
               </div>
             ) : (
-              <form onSubmit={handleForgotSubmit}>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+              <form onSubmit={handleForgotSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                   Enter your registered clinic staff email. An IT security code will be dispatched immediately.
                 </p>
                 <input
                   type="email"
                   className="input-field"
-                  placeholder="name@dentavision.ai"
+                  placeholder="e.g. staff@dentavision.ai"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   required
-                  style={{ marginBottom: '16px' }}
                 />
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn-secondary" onClick={() => setShowForgotModal(false)}>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                  >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-primary">
-                    Send Reset Link
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                  >
+                    Send Code
                   </button>
                 </div>
               </form>

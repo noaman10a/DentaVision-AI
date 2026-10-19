@@ -1,7 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { PatientProvider } from './context/PatientContext';
 import { AIProvider } from './context/AIContext';
 
@@ -27,6 +27,13 @@ import { TimelineModule } from './pages/doctor/TimelineModule';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { HealthCheckScreen } from './pages/admin/HealthCheckScreen';
 
+const DefaultRoleRedirect = () => {
+  const { user } = useAuth();
+  if (user?.role === 'reception') return <Navigate to="/reception" replace />;
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />;
+  return <Navigate to="/doctor" replace />;
+};
+
 export const App = () => {
   return (
     <ThemeProvider>
@@ -41,8 +48,8 @@ export const App = () => {
                 {/* Protected Workstation Shell */}
                 <Route element={<ProtectedLayout />}>
                   <Route element={<AppLayout />}>
-                    {/* Default redirect to Doctor dashboard for testing */}
-                    <Route path="/" element={<Navigate to="/doctor" replace />} />
+                    {/* Dynamic role-based landing */}
+                    <Route path="/" element={<DefaultRoleRedirect />} />
 
                     {/* Reception Routes */}
                     <Route path="/reception" element={<ReceptionDashboard />} />

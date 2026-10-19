@@ -6,9 +6,20 @@ export const initialRoles = {
   RECEPTION: 'reception',
   DOCTOR: 'doctor',
   ADMIN: 'admin',
-  HYGIENIST: 'hygienist',
-  ASSISTANT: 'assistant',
-  STAFF: 'staff',
+};
+
+export const ADMIN_CONFIG = {
+  // Emails that grant access to Administrator Panel (completely hidden from front-end)
+  allowedEmails: [
+    'admin@dentavision.ai',
+    'admin@gmail.com',
+    'noaman.admin@gmail.com',
+    'dentavision.admin@gmail.com'
+  ],
+  isAdmin: (email) => {
+    const clean = (email || '').toLowerCase().trim();
+    return ADMIN_CONFIG.allowedEmails.includes(clean) || clean.startsWith('admin@') || clean.includes('.admin@');
+  }
 };
 
 const mockUsers = {
@@ -17,7 +28,7 @@ const mockUsers = {
     name: 'Sneha Sahadevan',
     role: 'reception',
     roleLabel: 'Receptionist Lead',
-    email: 'sneha.reception@dentavision.ai',
+    email: 'reception@dentavision.ai',
     avatar: 'https://images.unsplash.com/photo-1594824813566-88855ce78961?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Block A',
   },
@@ -26,59 +37,71 @@ const mockUsers = {
     name: 'Dr. Twahir Mohammed',
     role: 'doctor',
     roleLabel: 'Senior Dental Surgeon',
-    email: 'twahir.doctor@dentavision.ai',
+    email: 'doctor@dentavision.ai',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
     clinic: 'DentaVision Main Clinic - Suite 4',
   },
   admin: {
     id: 'ADM-999',
-    name: 'Administrator',
+    name: 'System Administrator',
     role: 'admin',
     roleLabel: 'System Administrator',
     email: 'admin@dentavision.ai',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    clinic: 'DentaVision HQ',
-  },
-  assistant: {
-    id: 'AST-204',
-    name: 'Clinical Assistant',
-    role: 'assistant',
-    roleLabel: 'Dental Hygienist & Assistant',
-    email: 'assistant@dentavision.ai',
-    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80',
-    clinic: 'DentaVision Main Clinic - Room 2',
-  },
-  staff: {
-    id: 'STF-305',
-    name: 'Clinic Team Member',
-    role: 'staff',
-    roleLabel: 'Clinical Team Staff',
-    email: 'staff@dentavision.ai',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-    clinic: 'DentaVision Main Clinic',
+    clinic: 'DentaVision HQ & Security Admin',
   },
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(mockUsers.doctor); // Default login role for demo
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  // Require login on initial visit; persist within active browser session
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('dentavision_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return !!sessionStorage.getItem('dentavision_user');
+    } catch {
+      return false;
+    }
+  });
 
   const login = (emailOrId, password, selectedRole = 'doctor') => {
-    const matchedUser = mockUsers[selectedRole] || {
-      id: 'STF-CUSTOM',
-      name: emailOrId.split('@')[0] || 'Clinic Staff',
-      role: selectedRole,
-      roleLabel: selectedRole.toUpperCase(),
+    const cleanEmail = (emailOrId || '').toLowerCase().trim();
+    const isAdmin = ADMIN_CONFIG.isAdmin(cleanEmail);
+    const resolvedRole = isAdmin ? 'admin' : (selectedRole === 'reception' ? 'reception' : 'doctor');
+
+    const matchedUser = mockUsers[resolvedRole] || {
+      id: resolvedRole === 'admin' ? 'ADM-999' : (resolvedRole === 'reception' ? 'STF-001' : 'DOC-102'),
+      name: resolvedRole === 'admin' ? 'System Administrator' : (cleanEmail.split('@')[0] || 'Clinic Staff'),
+      role: resolvedRole,
+      roleLabel: resolvedRole === 'admin' ? 'System Administrator' : (resolvedRole === 'reception' ? 'Receptionist' : 'Senior Dental Surgeon'),
       email: emailOrId,
-      avatar: mockUsers.doctor.avatar,
+      avatar: mockUsers[resolvedRole]?.avatar || mockUsers.doctor.avatar,
       clinic: 'DentaVision Clinic',
     };
+
     setUser(matchedUser);
     setIsAuthenticated(true);
-    return { success: true };
+    try {
+      sessionStorage.setItem('dentavision_user', JSON.stringify(matchedUser));
+    } catch (e) {
+      console.warn('Could not save session', e);
+    }
+    return { success: true, role: resolvedRole };
   };
 
   const logout = () => {
+    try {
+      sessionStorage.removeItem('dentavision_user');
+    } catch (e) {
+      console.warn('Could not clear session', e);
+    }
     setIsAuthenticated(false);
     setUser(null);
   };
@@ -87,6 +110,11 @@ export const AuthProvider = ({ children }) => {
     if (mockUsers[roleKey]) {
       setUser(mockUsers[roleKey]);
       setIsAuthenticated(true);
+      try {
+        sessionStorage.setItem('dentavision_user', JSON.stringify(mockUsers[roleKey]));
+      } catch (e) {
+        console.warn('Could not update session', e);
+      }
     }
   };
 

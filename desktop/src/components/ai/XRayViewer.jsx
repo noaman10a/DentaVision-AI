@@ -46,9 +46,33 @@ export const XRayViewer = () => {
   // Dental Caliper Scale Measurement
   const [measurePoints, setMeasurePoints] = useState([]);
   const [measuredMm, setMeasuredMm] = useState(null);
+  const [measuredPx, setMeasuredPx] = useState(null);
+  const [calibPxPerMm, setCalibPxPerMm] = useState(14.2); // Dental OPG Standard (~14.2 px/mm)
 
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
+
+  // Global mouseup listener to prevent pan sticking when releasing outside canvas
+  useEffect(() => {
+    if (!isPanning) return;
+    const onGlobalMouseUp = () => setIsPanning(false);
+    window.addEventListener('mouseup', onGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', onGlobalMouseUp);
+  }, [isPanning]);
+
+  // Escape key listener to clear caliper or reset tool
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMeasurePoints([]);
+        setMeasuredMm(null);
+        setMeasuredPx(null);
+        if (activeTool === 'measure') setActiveTool('select');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTool]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -59,6 +83,7 @@ export const XRayViewer = () => {
       setPan({ x: 0, y: 0 });
       setMeasurePoints([]);
       setMeasuredMm(null);
+      setMeasuredPx(null);
     }
   };
 
@@ -68,6 +93,7 @@ export const XRayViewer = () => {
     setPan({ x: 0, y: 0 });
     setMeasurePoints([]);
     setMeasuredMm(null);
+    setMeasuredPx(null);
   };
 
   // Contrast Preset Switcher
@@ -99,18 +125,25 @@ export const XRayViewer = () => {
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     } else if (activeTool === 'measure') {
       const rect = imageRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = (e.clientX - rect.left) / zoom;
-      const y = (e.clientY - rect.top) / zoom;
+      if (!rect || !imageRef.current) return;
+      const clientW = imageRef.current.clientWidth || rect.width;
+      const clientH = imageRef.current.clientHeight || rect.height;
+      const rawX = (e.clientX - rect.left) / zoom;
+      const rawY = (e.clientY - rect.top) / zoom;
+      const x = Math.max(0, Math.min(clientW, rawX));
+      const y = Math.max(0, Math.min(clientH, rawY));
+
       if (measurePoints.length === 0 || measurePoints.length >= 2) {
         setMeasurePoints([{ x, y }]);
         setMeasuredMm(null);
+        setMeasuredPx(null);
       } else {
         const p1 = measurePoints[0];
         const distPx = Math.sqrt(Math.pow(x - p1.x, 2) + Math.pow(y - p1.y, 2));
-        const mm = (distPx / 14.2).toFixed(1);
+        const mm = (distPx / calibPxPerMm).toFixed(1);
         setMeasurePoints([p1, { x, y }]);
         setMeasuredMm(mm);
+        setMeasuredPx(Math.round(distPx));
       }
     }
   };
@@ -259,12 +292,12 @@ export const XRayViewer = () => {
 
           {/* Measured Distance Badge */}
           {measuredMm && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(56, 189, 248, 0.18)', border: '1px solid #38bdf8', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', color: '#38bdf8' }}>
-              <span>📏 {measuredMm} mm</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(56, 189, 248, 0.18)', border: '1px solid #38bdf8', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', color: '#38bdf8' }}>
+              <span>📏 {measuredMm} mm {measuredPx ? `(${measuredPx} px)` : ''}</span>
               <button
-                onClick={() => { setMeasurePoints([]); setMeasuredMm(null); }}
+                onClick={() => { setMeasurePoints([]); setMeasuredMm(null); setMeasuredPx(null); }}
                 style={{ background: 'none', border: 'none', color: '#38bdf8', cursor: 'pointer', padding: 0 }}
-                title="Clear Measurement"
+                title="Clear Measurement (Esc)"
               >
                 <X size={12} />
               </button>
@@ -414,7 +447,7 @@ export const XRayViewer = () => {
             />
 
             {/* Caliper Measurement SVG Scale Line */}
-            {measurePoints.length === 2 && (
+            {measurePoints.length >= 1 && (
               <svg
                 style={{
                   position: 'absolute',
@@ -426,38 +459,73 @@ export const XRayViewer = () => {
                   zIndex: 25
                 }}
               >
-                <line
-                  x1={measurePoints[0].x}
-                  y1={measurePoints[0].y}
-                  x2={measurePoints[1].x}
-                  y2={measurePoints[1].y}
-                  stroke="#38bdf8"
-                  strokeWidth="2"
-                  strokeDasharray="4 2"
-                />
-                <circle cx={measurePoints[0].x} cy={measurePoints[0].y} r="4" fill="#38bdf8" />
-                <circle cx={measurePoints[1].x} cy={measurePoints[1].y} r="4" fill="#38bdf8" />
-                <rect
-                  x={(measurePoints[0].x + measurePoints[1].x) / 2 - 28}
-                  y={(measurePoints[0].y + measurePoints[1].y) / 2 - 20}
-                  width="56"
-                  height="18"
-                  rx="4"
-                  fill="rgba(15, 23, 42, 0.95)"
-                  stroke="#38bdf8"
-                  strokeWidth="1"
-                />
-                <text
-                  x={(measurePoints[0].x + measurePoints[1].x) / 2}
-                  y={(measurePoints[0].y + measurePoints[1].y) / 2 - 7}
-                  fill="#38bdf8"
-                  fontSize="11"
-                  fontFamily="monospace"
-                  fontWeight="700"
-                  textAnchor="middle"
-                >
-                  {measuredMm} mm
-                </text>
+                {/* 1st Point Anchor Reticle */}
+                <circle cx={measurePoints[0].x} cy={measurePoints[0].y} r="5" fill="#38bdf8" stroke="#ffffff" strokeWidth="1.5" />
+                <circle cx={measurePoints[0].x} cy={measurePoints[0].y} r="11" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 2" opacity="0.85" />
+
+                {/* Prompt when only 1 point placed */}
+                {measurePoints.length === 1 && (
+                  <g>
+                    <rect
+                      x={measurePoints[0].x - 64}
+                      y={measurePoints[0].y - 28}
+                      width="128"
+                      height="20"
+                      rx="4"
+                      fill="rgba(15, 23, 42, 0.95)"
+                      stroke="#38bdf8"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={measurePoints[0].x}
+                      y={measurePoints[0].y - 14}
+                      fill="#38bdf8"
+                      fontSize="10"
+                      fontFamily="sans-serif"
+                      fontWeight="600"
+                      textAnchor="middle"
+                    >
+                      Click 2nd point to measure
+                    </text>
+                  </g>
+                )}
+
+                {/* 2nd Point and Measurement Line */}
+                {measurePoints.length === 2 && (
+                  <>
+                    <line
+                      x1={measurePoints[0].x}
+                      y1={measurePoints[0].y}
+                      x2={measurePoints[1].x}
+                      y2={measurePoints[1].y}
+                      stroke="#38bdf8"
+                      strokeWidth="2"
+                      strokeDasharray="4 2"
+                    />
+                    <circle cx={measurePoints[1].x} cy={measurePoints[1].y} r="5" fill="#38bdf8" stroke="#ffffff" strokeWidth="1.5" />
+                    <rect
+                      x={(measurePoints[0].x + measurePoints[1].x) / 2 - 32}
+                      y={(measurePoints[0].y + measurePoints[1].y) / 2 - 20}
+                      width="64"
+                      height="20"
+                      rx="4"
+                      fill="rgba(15, 23, 42, 0.95)"
+                      stroke="#38bdf8"
+                      strokeWidth="1"
+                    />
+                    <text
+                      x={(measurePoints[0].x + measurePoints[1].x) / 2}
+                      y={(measurePoints[0].y + measurePoints[1].y) / 2 - 6}
+                      fill="#38bdf8"
+                      fontSize="11"
+                      fontFamily="monospace"
+                      fontWeight="700"
+                      textAnchor="middle"
+                    >
+                      {measuredMm} mm
+                    </text>
+                  </>
+                )}
               </svg>
             )}
 
@@ -486,6 +554,7 @@ export const XRayViewer = () => {
                 <div
                   key={finding.id}
                   onClick={(e) => {
+                    if (activeTool !== 'select') return;
                     e.stopPropagation();
                     setActiveFindingId(finding.id);
                   }}
@@ -499,7 +568,8 @@ export const XRayViewer = () => {
                     minHeight: '18px',
                     border: `2px ${isSelected ? 'solid' : 'dashed'} ${statusColor}`,
                     backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.12)',
-                    cursor: 'pointer',
+                    cursor: activeTool === 'select' ? 'pointer' : 'inherit',
+                    pointerEvents: activeTool === 'select' ? 'auto' : 'none',
                     boxShadow: isSelected ? `0 0 16px ${statusColor}` : `0 0 6px ${statusColor}`,
                     borderRadius: '4px',
                     transition: 'all 0.2s ease',

@@ -152,6 +152,8 @@ class XRayPredictor:
                         th, tw = tile_img.shape[:2]
                         if th < tile_size or tw < tile_size:
                             import cv2
+                            if len(tile_img.shape) == 2:
+                                tile_img = cv2.cvtColor(tile_img, cv2.COLOR_GRAY2BGR)
                             padded = np.zeros((tile_size, tile_size, 3), dtype=np.uint8)
                             padded[:th, :tw] = tile_img
                             tile_img = padded
@@ -218,8 +220,13 @@ class XRayPredictor:
                         if conf < min_conf:
                             continue
 
-                        # Normalized bounding box [xmin, ymin, xmax, ymax]
-                        norm_box = [x1 / w, y1 / h, x2 / w, y2 / h]
+                        # Normalized bounding box [xmin, ymin, xmax, ymax] clamped to [0, 1]
+                        norm_box = [
+                            max(0.0, min(1.0, x1 / w)),
+                            max(0.0, min(1.0, y1 / h)),
+                            max(0.0, min(1.0, x2 / w)),
+                            max(0.0, min(1.0, y2 / h))
+                        ]
                         finding_type = YOLO_CLASS_NAMES.get(cls_id, f"Pathology_{cls_id}")
 
                         is_upper = norm_box[1] < 0.50
@@ -319,7 +326,7 @@ class XRayPredictor:
             inference_time_ms=elapsed_ms,
             patient_id=patient_id,
             xray_id=xray_id,
-            confidence_threshold=self.confidence_threshold
+            confidence_threshold=0.0
         )
 
         return output_json

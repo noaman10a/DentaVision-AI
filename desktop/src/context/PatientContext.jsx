@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
-import { registerPatientApi, createVisitApi } from '../services/api';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { fetchPatients as fetchPatientsApi, registerPatientApi, createVisitApi } from '../services/api';
 
 const PatientContext = createContext();
 
@@ -85,42 +85,42 @@ export const PatientProvider = ({ children }) => {
   const [activePatient, setActivePatient] = useState(initialPatients[0]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch real patient records from Express Backend Gateway
-  React.useEffect(() => {
-    const fetchRealPatients = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/v1/patients');
-        if (response.ok) {
-          const json = await response.json();
-          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-            const mapped = json.data.map(p => ({
-              id: p.id || 'PT-2026-0705',
-              name: p.name || 'Amina Rahmani',
-              phone: p.phone || '+91 98765 43210',
-              email: p.email || 'amina.r@example.com',
-              dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '1992-04-14',
-              gender: p.gender || 'Female',
-              address: p.address || '42 MG Road, Suite 3, Bengaluru, KA',
-              medicalHistory: (p.medicalHistories || p.medicalHistory)
-                ? (p.medicalHistories || p.medicalHistory).map(m => typeof m === 'string' ? m : (m.condition || m.name || 'Condition'))
-                : ['Penicillin Allergy', 'Mild Hypertension'],
-              emergencyContact: p.emergencyContact || 'Farhan Rahmani (+91 98765 43211)',
-              lastVisit: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : '2026-08-10',
-              status: p.status || 'Awaiting Review',
-              xrayCount: p.xrayRecords?.length ?? p.xrays?.length ?? 3,
-              reportsCount: p.reports?.length ?? 2,
-              visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits
-            }));
-            setPatients(mapped);
-            setActivePatient(mapped[0]);
-          }
-        }
-      } catch (err) {
-        console.warn('Real patients fetch (http://localhost:5000/api/v1/patients) warning:', err);
+  // Fetch registered patients from backend with local initialPatients fallback
+  const fetchPatients = useCallback(async () => {
+    try {
+      const data = await fetchPatientsApi();
+      if (data && Array.isArray(data) && data.length > 0) {
+        const mapped = data.map(p => ({
+          id: p.id || 'PT-2026-0705',
+          name: p.name || 'Amina Rahmani',
+          phone: p.phone || '+91 98765 43210',
+          email: p.email || 'amina.r@example.com',
+          dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '1992-04-14',
+          gender: p.gender || 'Female',
+          address: p.address || '42 MG Road, Suite 3, Bengaluru, KA',
+          medicalHistory: (p.medicalHistories || p.medicalHistory)
+            ? (p.medicalHistories || p.medicalHistory).map(m => typeof m === 'string' ? m : (m.condition || m.name || 'Condition'))
+            : ['Penicillin Allergy', 'Mild Hypertension'],
+          emergencyContact: p.emergencyContact || 'Farhan Rahmani (+91 98765 43211)',
+          lastVisit: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : '2026-08-10',
+          status: p.status || 'Awaiting Review',
+          xrayCount: p.xrayRecords?.length ?? p.xrays?.length ?? 3,
+          reportsCount: p.reports?.length ?? 2,
+          visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits
+        }));
+        setPatients(mapped);
+        setActivePatient(prev => prev || mapped[0]);
+        return mapped;
       }
-    };
-    fetchRealPatients();
+    } catch (err) {
+      console.warn('[PatientContext] Backend patients fetch notice (http://localhost:5000/api/v1/patients):', err);
+    }
+    return initialPatients;
   }, []);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
   const registerPatient = (newPatientData) => {
     const newId = `PT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -136,11 +136,11 @@ export const PatientProvider = ({ children }) => {
     setPatients(prev => [createdPatient, ...prev]);
     setActivePatient(createdPatient);
 
-    // Asynchronously notify backend gateway
+    // Sync with backend in background (non-blocking)
     registerPatientApi({
       ...newPatientData,
       id: newId
-    }).catch(err => console.warn('Backend register sync warning:', err));
+    }).catch(err => console.warn('[PatientContext] Backend register sync notice:', err));
 
     return createdPatient;
   };
@@ -229,7 +229,8 @@ export const PatientProvider = ({ children }) => {
         setSearchQuery,
         registerPatient,
         addClinicalVisit,
-        addPatientReport
+        addPatientReport,
+        fetchPatients
       }}
     >
       {children}
@@ -237,10 +238,12 @@ export const PatientProvider = ({ children }) => {
   );
 };
 
-export const usePatients = () => {
+export const usePatient = () => {
   const context = useContext(PatientContext);
   if (!context) {
-    throw new Error('usePatients must be used within a PatientProvider');
+    throw new Error('usePatient must be used within a PatientProvider');
   }
   return context;
 };
+
+export const usePatients = usePatient;

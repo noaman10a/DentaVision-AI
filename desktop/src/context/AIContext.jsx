@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { analyzeXrayApi } from '../services/api';
 
 const AIContext = createContext();
@@ -23,37 +23,37 @@ const defaultAnalysisResult = {
         x_max: 0.58,
         y_max: 0.52
       },
-      tooth_number: '16',
-      status: 'Pending Review', // 'Pending Review', 'Confirmed', 'Modified', 'Rejected'
-      notes: 'Deep occlusal radiolucency observed extending into dentin layer.'
+      tooth_number: '46',
+      status: 'Pending Review',
+      notes: 'Deep dentin caries approaching the pulp chamber on mandibular right first molar.'
     },
     {
-      id: 'f-8899aabb-2222-3333-4444-555566667777',
-      finding_type: 'Bone Loss',
-      confidence: 0.78,
+      id: 'f-e4b6b7a2-2222-4444-8888-abcdef123456',
+      finding_type: 'Periapical Lesion',
+      confidence: 0.85,
       bounding_box: {
-        x_min: 0.20,
-        y_min: 0.60,
-        x_max: 0.38,
-        y_max: 0.75
+        x_min: 0.45,
+        y_min: 0.65,
+        x_max: 0.55,
+        y_max: 0.78
       },
       tooth_number: '46',
       status: 'Pending Review',
-      notes: 'Moderate horizontal alveolar crest reduction.'
+      notes: 'Well-circumscribed radiolucency around mesial apex indicating chronic periapical abscess.'
     }
   ],
-  timestamp: '2026-08-12T10:03:00Z'
+  timestamp: '2026-08-12T10:30:00Z'
 };
 
 export const AIProvider = ({ children }) => {
   const [analysisResult, setAnalysisResult] = useState(defaultAnalysisResult);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isModelLoaded, setIsModelLoaded] = useState(false);
-  const [confidenceFilter, setConfidenceFilter] = useState(0.15);
   const [activeFindingId, setActiveFindingId] = useState(defaultAnalysisResult.findings[0]?.id);
+  const [isModelLoaded, setIsModelLoaded] = useState(true);
+  const [confidenceFilter, setConfidenceFilter] = useState(0.15); // Default to 15% to display calibrated findings
 
-  // 1. Startup Health Check to verify AI Service readiness
-  React.useEffect(() => {
+  // Check Local Python AI Microservice Health on port 8000
+  useEffect(() => {
     const checkServiceHealth = async () => {
       try {
         const response = await fetch('http://127.0.0.1:8000/api/v1/health');
@@ -78,68 +78,85 @@ export const AIProvider = ({ children }) => {
 
   const runAIAnalysis = async (xrayId, imageSrc, file, patientId = 'PT-2026-0705', visitId) => {
     setIsAnalyzing(true);
+    const targetPatientId = (typeof xrayId === 'string' && xrayId.startsWith('PT-')) ? xrayId : (patientId || 'PT-2026-0705');
+
     try {
-      const formData = new FormData();
-      if (file) {
-        formData.append('file', file);
-      }
-      formData.append('patient_id', patientId || 'PT-2026-0705');
-      if (visitId) {
-        formData.append('visit_id', visitId);
-      }
-
-      // 1. Primary: Route via Express Backend Gateway (POST http://localhost:5000/api/v1/xrays/analyze)
-      let response = await fetch('http://localhost:5000/api/v1/xrays/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        // Fallback: Direct Local AI Service REST API (POST http://127.0.0.1:8000/api/v1/analyze)
-        response = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
-          method: 'POST',
-          body: formData,
-        });
+      // Ensure we always have a real File/Blob so Multer on POST /api/v1/xrays/analyze receives a valid file
+      let uploadFile = file;
+      if (!uploadFile) {
+        try {
+          const sampleBlob = await fetch(imageSrc || defaultAnalysisResult.xray_url).then(r => r.blob());
+          uploadFile = new File([sampleBlob], 'patient_radiograph.png', { type: 'image/png' });
+        } catch (fetchErr) {
+          console.warn('[AIContext] Could not load sample blob:', fetchErr);
+        }
       }
 
-      if (response.ok) {
-        const json = await response.json();
-        const data = json.data || json;
-        const liveResult = {
-          status: 'success',
-          patient_id: patientId || 'PT-2026-0705',
-          xray_id: data.xray_record_id || xrayId || 'XRAY-2026-0042',
-          ai_analysis_id: data.ai_analysis_id,
-          xray_url: imageSrc || defaultAnalysisResult.xray_url,
-          model_version: data.model_version || 'DentaVisionNet v1.0.0',
-          inference_time_ms: data.inference_time_ms || 42.15,
-          findings_count: data.findings_count || (data.findings ? data.findings.length : 0),
-          findings: (data.findings && data.findings.length > 0) 
-            ? data.findings.map((f, idx) => ({
-                id: f.id || `f-live-${idx}-${Date.now()}`,
-                finding_type: f.finding_type,
-                confidence: f.confidence,
-                bounding_box: {
-                  x_min: f.bounding_box?.x_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[0] : 0.2),
-                  y_min: f.bounding_box?.y_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[1] : 0.2),
-                  x_max: f.bounding_box?.x_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[2] : 0.4),
-                  y_max: f.bounding_box?.y_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[3] : 0.4),
-                },
-                tooth_number: f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16',
-                status: f.severity || f.status || 'Pending Review',
-                notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16'}`
-              }))
-            : defaultAnalysisResult.findings,
-          timestamp: new Date().toISOString()
-        };
+      if (uploadFile) {
+        let liveResult = null;
 
-        setAnalysisResult(liveResult);
-        setIsAnalyzing(false);
-        setActiveFindingId(liveResult.findings[0]?.id);
-        return liveResult;
+        // 1. Primary: Hit POST http://localhost:5000/api/v1/xrays/analyze via analyzeXrayApi
+        try {
+          liveResult = await analyzeXrayApi(uploadFile, targetPatientId, visitId);
+        } catch (apiErr) {
+          console.warn('[AIContext] analyzeXrayApi failed, falling back to direct AI service:', apiErr);
+        }
+
+        // 2. Fallback: Direct Local AI Service REST API (POST http://127.0.0.1:8000/api/v1/analyze)
+        if (!liveResult || !liveResult.findings || liveResult.findings.length === 0) {
+          try {
+            const formData = new FormData();
+            formData.append('file', uploadFile);
+            formData.append('patient_id', targetPatientId);
+            if (visitId) formData.append('visit_id', visitId);
+
+            const directRes = await fetch('http://127.0.0.1:8000/api/v1/analyze', {
+              method: 'POST',
+              body: formData
+            });
+            if (directRes.ok) {
+              const directJson = await directRes.json();
+              liveResult = directJson.data || directJson;
+            }
+          } catch (directErr) {
+            console.warn('[AIContext] Direct AI service fetch notice:', directErr);
+          }
+        }
+
+        if (liveResult && liveResult.findings && liveResult.findings.length > 0) {
+          const formattedResult = {
+            status: 'success',
+            patient_id: liveResult.patient_id || targetPatientId,
+            xray_id: liveResult.xray_id || liveResult.xray_record_id || xrayId || 'XRAY-2026-0042',
+            ai_analysis_id: liveResult.ai_analysis_id,
+            xray_url: imageSrc || liveResult.xray_url || defaultAnalysisResult.xray_url,
+            model_version: liveResult.model_version || 'DentaVisionNet v1.0.0',
+            inference_time_ms: liveResult.inference_time_ms || 42.15,
+            findings_count: liveResult.findings_count || liveResult.findings.length,
+            findings: liveResult.findings.map((f, idx) => ({
+              id: f.id || `f-live-${idx}-${Date.now()}`,
+              finding_type: f.finding_type,
+              confidence: f.confidence,
+              bounding_box: {
+                x_min: f.bounding_box?.x_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[0] : 0.2),
+                y_min: f.bounding_box?.y_min ?? (Array.isArray(f.bounding_box) ? f.bounding_box[1] : 0.2),
+                x_max: f.bounding_box?.x_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[2] : 0.4),
+                y_max: f.bounding_box?.y_max ?? (Array.isArray(f.bounding_box) ? f.bounding_box[3] : 0.4),
+              },
+              tooth_number: f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16',
+              status: f.severity || f.status || 'Pending Review',
+              notes: f.notes || `${f.finding_type} detected on Tooth #${f.tooth_number ? String(f.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim() : '16'}`
+            })),
+            timestamp: liveResult.timestamp || new Date().toISOString()
+          };
+          setAnalysisResult(formattedResult);
+          setIsAnalyzing(false);
+          setActiveFindingId(formattedResult.findings[0]?.id);
+          return formattedResult;
+        }
       }
     } catch (err) {
-      console.warn("Express Backend / AI Gateway (http://localhost:5000/api/v1/xrays/analyze) warning:", err);
+      console.warn('[AIContext] Live backend POST /api/v1/xrays/analyze notice:', err);
     }
 
     // Fallback simulation latency

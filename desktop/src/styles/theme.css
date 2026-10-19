@@ -4,23 +4,23 @@
    ========================================================================== */
 
 :root, [data-theme="dark"] {
-  /* Backgrounds */
-  --bg-dark-base: #081020;
-  --bg-dark-surface: #111827;
-  --bg-dark-card: #111827;
-  --bg-dark-hover: #1e293b;
-  --bg-glass: rgba(17, 24, 39, 0.85);
+  /* Backgrounds aligned with DentaVision Cyber Tooth Palette */
+  --bg-dark-base: #050814;
+  --bg-dark-surface: #0a1124;
+  --bg-dark-card: #0d162e;
+  --bg-dark-hover: #142244;
+  --bg-glass: rgba(10, 17, 36, 0.85);
 
   /* Borders */
-  --border-glass: #1f2937;
-  --border-subtle: #1f2937;
-  --border-accent: rgba(37, 99, 235, 0.4);
+  --border-glass: rgba(56, 189, 248, 0.18);
+  --border-subtle: #162447;
+  --border-accent: rgba(0, 210, 255, 0.45);
 
   /* Primary & Accents */
-  --primary-teal: #2563eb;
-  --primary-teal-hover: #1d4ed8;
-  --primary-teal-glow: rgba(37, 99, 235, 0.25);
-  --secondary-cyan: #06b6d4;
+  --primary-teal: #00d2ff;
+  --primary-teal-hover: #0ea5e9;
+  --primary-teal-glow: rgba(0, 210, 255, 0.25);
+  --secondary-cyan: #38bdf8;
   --accent-blue: #2563eb;
   --accent-purple: #8b5cf6;
 

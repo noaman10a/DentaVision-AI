@@ -1,7 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { 
+  Sparkles, 
+  Lock, 
+  Mail, 
+  ArrowRight, 
+  AlertCircle, 
+  Eye, 
+  EyeOff, 
+  ShieldCheck, 
+  Cpu,
+  CheckCircle2
+} from 'lucide-react';
+import heroGraphic from '../assets/dentavision_hero.png';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -9,8 +21,104 @@ export const LoginPage = () => {
 
   const [emailOrId, setEmailOrId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const canvasRef = useRef(null);
+
+  // Dynamic Neural Network Constellation Background (matches cybernetic tooth mesh)
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const particleCount = 48;
+    const particles = Array.from({ length: particleCount }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      radius: Math.random() * 1.8 + 0.8,
+      alpha: Math.random() * 0.45 + 0.25,
+    }));
+
+    let mouse = { x: -1000, y: -1000 };
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw filaments between close particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 135) {
+            const filamentAlpha = (1 - dist / 135) * 0.25;
+            ctx.strokeStyle = `rgba(0, 210, 255, ${filamentAlpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+
+        // Gentle interactive mouse glow
+        const mdx = p.x - mouse.x;
+        const mdy = p.y - mouse.y;
+        const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+        let glowRadius = p.radius;
+        if (mdist < 110) {
+          glowRadius = p.radius * (1 + (1 - mdist / 110) * 1.6);
+        }
+
+        ctx.fillStyle = `rgba(0, 210, 255, ${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -49,7 +157,7 @@ export const LoginPage = () => {
 
   const handleOpenForgotPassword = (e) => {
     e.preventDefault();
-    // Opens Forgot Password recovery workflow in a new browser tab as requested
+    // Opens Forgot Password recovery workflow in a new browser tab
     window.open('#/forgot-password', '_blank');
   };
 
@@ -58,143 +166,676 @@ export const LoginPage = () => {
       style={{
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'var(--bg-dark-base)',
+        backgroundColor: '#00020f',
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px',
-        position: 'relative',
-        transition: 'var(--transition-theme)',
+        overflow: 'hidden',
+        color: '#f8fafc',
       }}
     >
-
-      <div
-        className="glass-card fade-in"
+      {/* Background Interactive Canvas (Neural Network Filament Mesh) */}
+      <canvas
+        ref={canvasRef}
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: '100%',
-          maxWidth: '440px',
-          padding: '40px 36px',
-          boxShadow: 'var(--shadow-lg), var(--shadow-glow)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-glass)',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Atmospheric Ambient Radial Glows */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '-15%',
+          left: '10%',
+          width: '700px',
+          height: '700px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0, 210, 255, 0.12) 0%, rgba(0, 2, 15, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '-20%',
+          right: '15%',
+          width: '650px',
+          height: '650px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(0, 2, 15, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Main Split-Screen Container */}
+      <div
+        style={{
+          width: '92%',
+          maxWidth: '1280px',
+          height: '88vh',
+          maxHeight: '790px',
+          display: 'grid',
+          gridTemplateColumns: '1.2fr 0.8fr',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          zIndex: 10,
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.85), 0 0 50px rgba(0, 210, 255, 0.12)',
+          border: '1px solid rgba(0, 210, 255, 0.25)',
+          background: 'rgba(0, 3, 18, 0.85)',
+          backdropFilter: 'blur(28px)',
         }}
       >
-        {/* Header Branding */}
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        {/* ================= LEFT SECTION: DENTAVISION HERO & ANIMATIONS ================= */}
+        <div
+          style={{
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '28px 32px',
+            borderRight: '1px solid rgba(0, 210, 255, 0.18)',
+            overflow: 'hidden',
+            backgroundColor: '#00020f',
+          }}
+        >
+          {/* Subtle Ambient Radial Glow underneath Hero */}
           <div
             style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background: 'var(--primary-teal)',
-              display: 'inline-flex',
+              position: 'absolute',
+              width: '480px',
+              height: '480px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(0, 210, 255, 0.22) 0%, rgba(37, 99, 235, 0.1) 45%, transparent 75%)',
+              animation: 'pulseHalo 5s ease-in-out infinite',
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* SVG Animated Orbital Rings */}
+          <svg
+            style={{
+              position: 'absolute',
+              width: '600px',
+              height: '600px',
+              pointerEvents: 'none',
+              animation: 'spinOrbit 36s linear infinite',
+              opacity: 0.75,
+            }}
+            viewBox="0 0 500 500"
+          >
+            <ellipse
+              cx="250"
+              cy="230"
+              rx="235"
+              ry="110"
+              fill="none"
+              stroke="url(#orbitGradient1)"
+              strokeWidth="1.2"
+              strokeDasharray="8 6"
+              transform="rotate(-25 250 230)"
+            />
+            <circle cx="475" cy="205" r="3.5" fill="#00d2ff">
+              <animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <defs>
+              <linearGradient id="orbitGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00d2ff" stopOpacity="0.8" />
+                <stop offset="50%" stopColor="#2563eb" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#00d2ff" stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <svg
+            style={{
+              position: 'absolute',
+              width: '520px',
+              height: '520px',
+              pointerEvents: 'none',
+              animation: 'spinOrbitReverse 26s linear infinite',
+              opacity: 0.6,
+            }}
+            viewBox="0 0 500 500"
+          >
+            <ellipse
+              cx="250"
+              cy="230"
+              rx="215"
+              ry="80"
+              fill="none"
+              stroke="#38bdf8"
+              strokeWidth="0.9"
+              strokeDasharray="4 8"
+              transform="rotate(35 250 230)"
+            />
+            <circle cx="68" cy="252" r="3.2" fill="#38bdf8" />
+          </svg>
+
+          {/* Floating Hero Branding Graphic with True Alpha PNG */}
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: '470px',
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '12px',
-              boxShadow: 'var(--shadow-glow)',
+              animation: 'floatHero 7s ease-in-out infinite',
+              zIndex: 3,
             }}
           >
-            <Sparkles size={30} color="#fff" />
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <img
+                src={heroGraphic}
+                alt="DentaVision AI Cybernetic Tooth"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 15px 35px rgba(0, 210, 255, 0.35))',
+                }}
+              />
+            </div>
           </div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
-            DentaVision <span style={{ color: 'var(--primary-teal)' }}>AI</span>
-          </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            Clinical Desktop Authentication & Workstation Gate
-          </p>
+
+          {/* Floating Lottie-Style Clinical Intelligence Badges */}
+          {/* Badge 1: Top Right */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '9%',
+              right: '6%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 16px',
+              borderRadius: '30px',
+              background: 'rgba(10, 20, 42, 0.88)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(0, 210, 255, 0.45)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(0, 210, 255, 0.25)',
+              animation: 'badgeFloat1 6s ease-in-out infinite',
+              zIndex: 5,
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #00d2ff, #2563eb)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={16} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#f8fafc', letterSpacing: '0.2px' }}>
+                YOLOv8 Dual Engine
+              </div>
+              <div style={{ fontSize: '10.5px', color: '#38bdf8' }}>
+                14-Class Dental Detection
+              </div>
+            </div>
+          </div>
+
+          {/* Badge 2: Bottom Left */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '8%',
+              left: '5%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '10px 16px',
+              borderRadius: '30px',
+              background: 'rgba(10, 20, 42, 0.88)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(16, 185, 129, 0.2)',
+              animation: 'badgeFloat2 5.5s ease-in-out infinite 0.8s',
+              zIndex: 5,
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <ShieldCheck size={16} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#f8fafc' }}>
+                Human-in-the-Loop
+              </div>
+              <div style={{ fontSize: '10.5px', color: '#34d399' }}>
+                Attestation & Audit Ready
+              </div>
+            </div>
+          </div>
+
+          {/* Badge 3: Bottom Right */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '7%',
+              right: '5%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '9px 15px',
+              borderRadius: '30px',
+              background: 'rgba(10, 20, 42, 0.88)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(56, 189, 248, 0.2)',
+              animation: 'badgeFloat3 6.5s ease-in-out infinite 1.4s',
+              zIndex: 5,
+            }}
+          >
+            <div
+              style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Cpu size={15} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#f8fafc' }}>
+                Offline Edge AI
+              </div>
+              <div style={{ fontSize: '10px', color: '#93c5fd' }}>
+                &lt;40ms Local PACS
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Error Alert */}
-        {errorMsg && (
+        {/* ================= RIGHT SECTION: SLEEK GLASSMORPHIC LOGIN ================= */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '48px 46px',
+            backgroundColor: 'rgba(8, 14, 30, 0.85)',
+            backdropFilter: 'blur(20px)',
+            position: 'relative',
+          }}
+        >
+          {/* Top Clinical Gateway Status Pill */}
           <div
-            className="badge badge-error"
             style={{
-              width: '100%',
-              padding: '12px 14px',
-              borderRadius: '8px',
-              marginBottom: '18px',
-              fontSize: '12.5px',
-              display: 'flex',
-              alignItems: 'flex-start',
+              display: 'inline-flex',
+              alignItems: 'center',
               gap: '8px',
-              lineHeight: '1.4',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              background: 'rgba(0, 210, 255, 0.08)',
+              border: '1px solid rgba(0, 210, 255, 0.28)',
+              width: 'fit-content',
+              marginBottom: '20px',
             }}
           >
-            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <span>{errorMsg}</span>
+            <div
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#00d2ff',
+                animation: 'livePulse 2s infinite',
+              }}
+            />
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                letterSpacing: '0.8px',
+                color: '#38bdf8',
+                textTransform: 'uppercase',
+              }}
+            >
+              Clinical Desktop Gateway v1.0
+            </span>
           </div>
-        )}
 
-        {/* Clean Login Form: Only Email and Password */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div>
-            <label className="input-label">Clinic Email Address</label>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                type="email"
-                className="input-field"
-                placeholder="e.g. doctor@dentavision.ai or staff email"
-                value={emailOrId}
-                onChange={(e) => setEmailOrId(e.target.value)}
-                style={{ paddingLeft: '38px' }}
-                autoComplete="username"
-                autoFocus
-                required
-              />
+          {/* Heading */}
+          <div style={{ marginBottom: '28px' }}>
+            <h1
+              style={{
+                fontSize: '28px',
+                fontWeight: '700',
+                color: '#ffffff',
+                fontFamily: 'var(--font-heading)',
+                letterSpacing: '-0.5px',
+                margin: 0,
+              }}
+            >
+              Sign In to Workstation
+            </h1>
+            <p
+              style={{
+                fontSize: '13.5px',
+                color: '#94a3b8',
+                marginTop: '6px',
+                lineHeight: '1.5',
+              }}
+            >
+              Enter your clinic email to automatically route to your assigned clinical role.
+            </p>
+          </div>
+
+          {/* Error Alert Box */}
+          {errorMsg && (
+            <div
+              className="badge badge-error"
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                borderRadius: '10px',
+                marginBottom: '20px',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                color: '#fca5a5',
+              }}
+            >
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <span>{errorMsg}</span>
             </div>
-          </div>
+          )}
 
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="input-label" style={{ marginBottom: 0 }}>Password</label>
-              <a
-                href="#/forgot-password"
-                onClick={handleOpenForgotPassword}
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Email Field */}
+            <div>
+              <label
                 style={{
-                  color: 'var(--primary-teal)',
-                  fontSize: '12px',
+                  display: 'block',
+                  fontSize: '12.5px',
                   fontWeight: '600',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.2s ease',
+                  color: '#cbd5e1',
+                  marginBottom: '8px',
+                  letterSpacing: '0.2px',
                 }}
-                title="Open password recovery tab"
               >
-                Forgot Password?
-              </a>
+                Clinic Email Address
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail
+                  size={18}
+                  color="#64748b"
+                  style={{
+                    position: 'absolute',
+                    left: '14px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <input
+                  type="email"
+                  placeholder="doctor@dentavision.ai or staff email"
+                  value={emailOrId}
+                  onChange={(e) => setEmailOrId(e.target.value)}
+                  autoComplete="username"
+                  autoFocus
+                  required
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                    border: '1px solid #1e293b',
+                    borderRadius: '10px',
+                    padding: '0 16px 0 42px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#00d2ff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0, 210, 255, 0.2), 0 0 15px rgba(0, 210, 255, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#1e293b';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
             </div>
-            <div style={{ position: 'relative' }}>
-              <Lock size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-              <input
-                type="password"
-                className="input-field"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: '38px' }}
-                autoComplete="current-password"
-                required
-              />
+
+            {/* Password Field with Interactive Show/Hide Toggle */}
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '8px',
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: '12.5px',
+                    fontWeight: '600',
+                    color: '#cbd5e1',
+                    margin: 0,
+                    letterSpacing: '0.2px',
+                  }}
+                >
+                  Password
+                </label>
+                <a
+                  href="#/forgot-password"
+                  onClick={handleOpenForgotPassword}
+                  style={{
+                    color: '#00d2ff',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'opacity 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => (e.target.style.textDecoration = 'underline')}
+                  onMouseLeave={(e) => (e.target.style.textDecoration = 'none')}
+                  title="Open password recovery tab"
+                >
+                  Forgot Password?
+                </a>
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <Lock
+                  size={18}
+                  color="#64748b"
+                  style={{
+                    position: 'absolute',
+                    left: '14px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                    border: '1px solid #1e293b',
+                    borderRadius: '10px',
+                    padding: '0 44px 0 42px',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#00d2ff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(0, 210, 255, 0.2), 0 0 15px rgba(0, 210, 255, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#1e293b';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+
+                {/* Password Show/Hide Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: showPassword ? '#00d2ff' : '#64748b',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s ease',
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Glowing Lottie-Style CTA Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                height: '48px',
+                marginTop: '10px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #00d2ff 0%, #2563eb 100%)',
+                color: '#ffffff',
+                fontSize: '15px',
+                fontWeight: '700',
+                letterSpacing: '0.3px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 4px 20px rgba(0, 210, 255, 0.4), 0 0 10px rgba(37, 99, 235, 0.3)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease',
+                opacity: isLoading ? 0.8 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 8px 28px rgba(0, 210, 255, 0.6), 0 0 18px rgba(37, 99, 235, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 210, 255, 0.4), 0 0 10px rgba(37, 99, 235, 0.3)';
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <div
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      borderTopColor: '#ffffff',
+                      animation: 'spinOrbit 0.8s linear infinite',
+                    }}
+                  />
+                  <span>Authenticating...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Workstation</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Secure Clinical Footnote */}
+          <div
+            style={{
+              marginTop: '32px',
+              paddingTop: '20px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              fontSize: '11.5px',
+              color: '#64748b',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <ShieldCheck size={14} color="#00d2ff" />
+              <span>AES-256 Encrypted Session</span>
+            </div>
+            <span>•</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <CheckCircle2 size={14} color="#10b981" />
+              <span>Local PACS Ready</span>
             </div>
           </div>
-
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isLoading}
-            style={{ width: '100%', height: '46px', marginTop: '6px', fontSize: '15px', fontWeight: '600' }}
-          >
-            {isLoading ? (
-              <span>Authenticating...</span>
-            ) : (
-              <>
-                <span>Sign In to Workstation</span>
-                <ArrowRight size={18} />
-              </>
-            )}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

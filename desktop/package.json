@@ -8,6 +8,7 @@
     "dev": "vite",
     "electron:dev": "concurrently \"npm run dev\" \"npm run electron\"",
     "electron": "electron .",
+    "electron:prod": "npm run build && cross-env NODE_ENV=production electron .",
     "build": "vite build",
     "preview": "vite preview"
   },

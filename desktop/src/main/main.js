@@ -24,10 +24,16 @@ function createWindow() {
     show: false,
   });
 
-  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged;
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:3000');
+    const loadDevURL = () => {
+      mainWindow.loadURL('http://localhost:3000').catch(() => {
+        // Retry until Vite dev server is available
+        setTimeout(loadDevURL, 600);
+      });
+    };
+    loadDevURL();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../dist/index.html'));
   }

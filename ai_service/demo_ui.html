@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentaVision AI — Technical Lead Live Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #151c2c;
+            --bg-card-hover: #1e293b;
+            --border-color: #334155;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 0 18px rgba(6, 182, 212, 0.4);
+        }
+
+        .brand-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .system-badges {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .badge {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        main {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            display: grid;
+            grid-template-columns: 360px 1fr 400px;
+            gap: 1.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 0.75rem;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.08);
+        }
+
+        .dropzone-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-cyan);
+        }
+
+        .dropzone-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 0.75rem;
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .sample-btn {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .sample-btn:hover {
+            background: #273549;
+            border-color: var(--accent-cyan);
+        }
+
+        .viewport-container {
+            position: relative;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 520px;
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        #xrayCanvas {
+            max-width: 100%;
+            max-height: 600px;
+            object-fit: contain;
+        }
+
+        .placeholder-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .metric-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-val {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .metric-lbl {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        .findings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        .summary-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--border-color);
+            border-left: 5px solid var(--accent-cyan);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.15s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateX(3px);
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .summary-conf-badge {
+            background: rgba(6, 182, 212, 0.15);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+        }
+
+        .summary-details {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: rgba(15, 23, 42, 0.5);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        .toggle-json-btn {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .toggle-json-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .json-viewer {
+            background: #090d16;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: #38bdf8;
+            max-height: 180px;
+            overflow: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border-left-color: var(--accent-cyan);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 15, 25, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-icon">DV</div>
+            <div>
+                <div class="brand-title">DentaVision AI</div>
+                <div class="brand-subtitle">Technical Lead Live Microservice Demo</div>
+            </div>
+        </div>
+        <div class="system-badges">
+            <div class="badge"><div class="badge-dot"></div> FastAPI Service</div>
+            <div class="badge">YOLOv8 14-Class PyTorch</div>
+            <div class="badge">32ms Latency (~31 FPS)</div>
+        </div>
+
+    </header>
+
+    <main>
+        <!-- LEFT PANEL: Upload & Sample Picker -->
+        <section class="card">
+            <div class="card-header">
+                <span>📁 Select Dental X-Ray</span>
+                <span style="font-size: 0.75rem; color: var(--accent-cyan);">Live REST Client</span>
+            </div>
+
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                <div class="dropzone-icon">📷</div>
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">Drop Dental X-Ray Here</div>
+                <div class="dropzone-text">Supports PNG, JPG, JPEG</div>
+                <button class="btn-upload" type="button">Browse Workstation</button>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="card-header" style="margin-top: 0.5rem;">
+                <span>🎯 Select Independent Test Set X-Ray</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">60 Independent Benchmark Test Images:</label>
+                <select id="testSetSelect" onchange="onTestSetSelect(this)" style="background: var(--bg-card-hover); border: 1px solid var(--accent-cyan); color: var(--text-primary); padding: 0.65rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; outline: none;">
+                    <option value="" disabled selected>-- Choose Test Radiograph --</option>
+                    <optgroup label="🦴 OPG / Panoramic Radiographs (20 Images)">
+                        <option value="/test_xrays/OPG/532.jpg">OPG #532.jpg</option>
+                        <option value="/test_xrays/OPG/533.jpg">OPG #533.jpg</option>
+                        <option value="/test_xrays/OPG/534.jpg">OPG #534.jpg</option>
+                        <option value="/test_xrays/OPG/535.jpg">OPG #535.jpg</option>
+                        <option value="/test_xrays/OPG/536.jpg">OPG #536.jpg</option>
+                        <option value="/test_xrays/OPG/537.jpg">OPG #537.jpg</option>
+                        <option value="/test_xrays/OPG/538.jpg">OPG #538.jpg</option>
+                        <option value="/test_xrays/OPG/539.jpg">OPG #539.jpg</option>
+                        <option value="/test_xrays/OPG/540.jpg">OPG #540.jpg</option>
+                        <option value="/test_xrays/OPG/541.jpg">OPG #541.jpg</option>
+                        <option value="/test_xrays/OPG/88.jpg">OPG #88.jpg</option>
+                        <option value="/test_xrays/OPG/89.jpg">OPG #89.jpg</option>
+                        <option value="/test_xrays/OPG/90.jpg">OPG #90.jpg</option>
+                        <option value="/test_xrays/OPG/91.jpg">OPG #91.jpg</option>
+                        <option value="/test_xrays/OPG/92.jpg">OPG #92.jpg</option>
+                        <option value="/test_xrays/OPG/93.jpg">OPG #93.jpg</option>
+                        <option value="/test_xrays/OPG/94.jpg">OPG #94.jpg</option>
+                        <option value="/test_xrays/OPG/95.jpg">OPG #95.jpg</option>
+                        <option value="/test_xrays/OPG/96.jpg">OPG #96.jpg</option>
+                        <option value="/test_xrays/OPG/97.jpg">OPG #97.jpg</option>
+                    </optgroup>
+                    <optgroup label="🦷 Bitewing Radiographs (20 Images)">
+                        <option value="/test_xrays/Bitewing/01.png">Bitewing 01.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/06.png">Bitewing 06.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/07.png">Bitewing 07.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/08.png">Bitewing 08.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/09.png">Bitewing 09.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/10.png">Bitewing 10.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/11.png">Bitewing 11.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/16.png">Bitewing 16.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/17.png">Bitewing 17.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/18.png">Bitewing 18.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/19.png">Bitewing 19.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/22.png">Bitewing 22.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/23.png">Bitewing 23.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/90.png">Bitewing 90.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/91.png">Bitewing 91.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/94.png">Bitewing 94.png (Healthy / No Caries)</option>
+                        <option value="/test_xrays/Bitewing/95.png">Bitewing 95.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/96.png">Bitewing 96.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/97.png">Bitewing 97.png (Caries)</option>
+                        <option value="/test_xrays/Bitewing/100.png">Bitewing 100.png (Caries)</option>
+                    </optgroup>
+                    <optgroup label="🔬 Periapical IOPA Radiographs (20 Images)">
+                        <option value="/test_xrays/Periapical/2.73.JPG">Periapical 2.73.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.74.JPG">Periapical 2.74.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.75.JPG">Periapical 2.75.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.76.JPG">Periapical 2.76.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.77.JPG">Periapical 2.77.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.78.JPG">Periapical 2.78.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.79.JPG">Periapical 2.79.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.80.JPG">Periapical 2.80.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.81.JPG">Periapical 2.81.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.82.JPG">Periapical 2.82.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.83.JPG">Periapical 2.83.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.84.JPG">Periapical 2.84.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.85.JPG">Periapical 2.85.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.86.JPG">Periapical 2.86.JPG (Lesion)</option>
+                        <option value="/test_xrays/Periapical/2.87.JPG">Periapical 2.87.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.88.JPG">Periapical 2.88.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.89.JPG">Periapical 2.89.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.90.JPG">Periapical 2.90.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.91.JPG">Periapical 2.91.JPG (Normal)</option>
+                        <option value="/test_xrays/Periapical/2.92.JPG">Periapical 2.92.JPG (Normal)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div style="margin-top: auto; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; background: rgba(15, 23, 42, 0.5); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                💡 <b>Technical Lead Note:</b> The client sends a <code>POST /api/v1/analyze</code> multipart payload to the FastAPI engine. CLAHE contrast enhancement & Non-Maximum Suppression (NMS) run live.
+            </div>
+        </section>
+
+        <!-- CENTER PANEL: Interactive Canvas Viewport -->
+        <section class="card" style="grid-column: span 1;">
+            <div class="card-header">
+                <span>🎯 Interactive Pathology Bounding Box Canvas</span>
+                <span id="statusIndicator" style="font-size: 0.75rem; color: var(--text-secondary);">Ready</span>
+            </div>
+
+            <div class="viewport-container" id="viewport">
+                <div class="placeholder-text" id="placeholder">
+                    Upload or select a dental X-ray to run AI inference & draw bounding boxes
+                </div>
+                <canvas id="xrayCanvas" style="display: none;"></canvas>
+
+                <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                    <div class="spinner"></div>
+                    <div style="font-size: 0.9rem; font-weight: 600; color: var(--accent-cyan);">Running PyTorch Inference & NMS Deduplication...</div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <div class="metric-val" id="metricLatency">--</div>
+                    <div class="metric-lbl">Inference Latency</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val" id="metricFindings">--</div>
+                    <div class="metric-lbl">Pathologies Found</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-val" id="metricStatus">--</div>
+                    <div class="metric-lbl">API Response</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Simple Visual Summary & Optional JSON Viewer -->
+        <section class="card">
+            <div class="card-header">
+                <span>📋 Detection Summary</span>
+                <span style="font-size: 0.75rem; color: var(--accent-green);">Human-Readable</span>
+            </div>
+
+            <div class="findings-list" id="findingsList">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; padding: 3rem 1rem; line-height: 1.5;">
+                    Select an X-ray on the left panel to display detected pathology bounding boxes and diagnostic summary.
+                </div>
+            </div>
+
+            <button class="toggle-json-btn" type="button" onclick="toggleJsonViewer()">
+                💻 Toggle Developer Raw JSON Payload
+            </button>
+            <div class="json-viewer" id="jsonViewer">{ "status": "idle" }</div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/v1/analyze';
+        const canvas = document.getElementById('xrayCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentImage = null;
+
+        // Drag & Drop listeners
+        const dropzone = document.getElementById('dropzone');
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                processImageFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFileSelect(event) {
+            if (event.target.files.length > 0) {
+                processImageFile(event.target.files[0]);
+            }
+        }
+
+        function onTestSetSelect(elem) {
+            if (elem.value) {
+                loadPresetSample(elem.value, elem.options[elem.selectedIndex].text);
+            }
+        }
+
+        async function loadPresetSample(sampleUrl, label) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            try {
+                const response = await fetch(sampleUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to load preset ${sampleUrl}`);
+                }
+                const blob = await response.blob();
+                const file = new File([blob], sampleUrl.split('/').pop(), { type: 'image/jpeg' });
+                processImageFile(file);
+            } catch (err) {
+                console.error('Preset loading error:', err);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                alert(`Could not load preset sample: ${err.message}`);
+            }
+        }
+
+        function processImageFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    document.getElementById('placeholder').style.display = 'none';
+                    canvas.style.display = 'block';
+                    renderCanvas(img, []);
+                    sendApiInference(file);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function sendApiInference(file) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('statusIndicator').innerText = 'Analyzing...';
+            document.getElementById('statusIndicator').style.color = 'var(--accent-amber)';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const startTime = performance.now();
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                const totalClientLatency = (performance.now() - startTime).toFixed(1);
+
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('statusIndicator').innerText = 'Complete (200 OK)';
+                document.getElementById('statusIndicator').style.color = 'var(--accent-green)';
+
+                // Update Telemetry Metrics
+                document.getElementById('metricLatency').innerText = `${data.inference_time_ms ? data.inference_time_ms.toFixed(1) : totalClientLatency} ms`;
+                document.getElementById('metricFindings').innerText = data.findings_count !== undefined ? data.findings_count : 0;
+                document.getElementById('metricStatus').innerText = '200 OK';
+
+                // Display JSON
+                document.getElementById('jsonViewer').innerText = JSON.stringify(data, null, 2);
+
+                // Render Canvas Bounding Boxes & Summary Cards
+                if (data.findings && data.findings.length > 0) {
+                    renderCanvas(currentImage, data.findings);
+                    renderSummaryCards(data.findings);
+                } else {
+                    renderCanvas(currentImage, []);
+                    renderSummaryCards([]);
+                }
+
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('statusIndicator').innerText = 'Connection Failed';
+                document.getElementById('statusIndicator').style.color = 'var(--accent-red)';
+                document.getElementById('metricStatus').innerText = 'Error';
+                document.getElementById('jsonViewer').innerText = JSON.stringify({ error: error.message, note: "Ensure FastAPI server is running on http://127.0.0.1:8000" }, null, 2);
+            }
+        }
+
+        function renderCanvas(img, findings) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            findings.forEach((item, idx) => {
+                const bbox = item.bounding_box;
+                if (!bbox) return;
+
+                // Scale normalized bounding box (0.0 to 1.0) to image dimensions
+                let x_min = bbox.x_min <= 1.0 ? bbox.x_min * img.width : bbox.x_min;
+                let y_min = bbox.y_min <= 1.0 ? bbox.y_min * img.height : bbox.y_min;
+                let x_max = bbox.x_max <= 1.0 ? bbox.x_max * img.width : bbox.x_max;
+                let y_max = bbox.y_max <= 1.0 ? bbox.y_max * img.height : bbox.y_max;
+
+                let width = x_max - x_min;
+                let height = y_max - y_min;
+
+                const color = getFindingColor(item.finding_type);
+
+                // Bounding Box Glow Effect
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 12;
+                ctx.lineWidth = Math.max(4, Math.round(img.width / 150));
+                ctx.strokeStyle = color;
+                ctx.strokeRect(x_min, y_min, width, height);
+
+                // Reset Glow
+                ctx.shadowBlur = 0;
+
+                // Translucent Inner Fill
+                ctx.fillStyle = hexToRgba(color, 0.15);
+                ctx.fillRect(x_min, y_min, width, height);
+
+                // Badge Tag Header (Pathology Name + Confidence % + Tooth Region)
+                const confStr = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
+                const toothStr = item.tooth_number ? ` | ${item.tooth_number}` : '';
+                const labelText = ` 📍 ${item.finding_type} (${confStr}${toothStr}) `;
+                ctx.font = 'bold 16px Inter, sans-serif';
+                const textMetrics = ctx.measureText(labelText);
+                const badgeWidth = textMetrics.width + 12;
+                const badgeHeight = 28;
+
+                const badgeY = Math.max(0, y_min - badgeHeight);
+
+                // Badge background
+                ctx.fillStyle = color;
+                ctx.fillRect(x_min, badgeY, badgeWidth, badgeHeight);
+
+                // Badge text
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(labelText, x_min + 6, badgeY + 19);
+            });
+        }
+
+        function getFindingColor(type) {
+            const t = (type || '').toLowerCase();
+            if (t.includes('caries') || t.includes('carious')) return '#ef4444'; // Red
+            if (t.includes('bone')) return '#f59e0b'; // Amber
+            if (t.includes('apical') || t.includes('periodontitis')) return '#a855f7'; // Purple
+            if (t.includes('impacted')) return '#06b6d4'; // Cyan
+            if (t.includes('restoration') || t.includes('prosthetic')) return '#10b981'; // Green
+            if (t.includes('endodontic') || t.includes('obturation')) return '#3b82f6'; // Blue
+            if (t.includes('implant')) return '#14b8a6'; // Teal
+            if (t.includes('surgical') || t.includes('orthodontic')) return '#8b5cf6'; // Indigo
+            if (t.includes('root') || t.includes('fragment')) return '#ec4899'; // Pink
+            if (t.includes('furcation')) return '#f97316'; // Orange
+            return '#0284c7';
+        }
+
+        function getPathologyDescription(type) {
+            const t = (type || '').toLowerCase();
+            if (t.includes('caries') || t.includes('carious')) 
+                return "Demineralization of dental hard tissues (tooth decay) localized in marked region. Cavity restoration recommended.";
+            if (t.includes('bone')) 
+                return "Reduction in alveolar bone height detected around tooth structure. Indicates periodontitis risk and root support loss.";
+            if (t.includes('apical')) 
+                return "Radiolucent area around root apex indicating periapical periodontitis, pulpitis, or periapical lesion.";
+            if (t.includes('impacted')) 
+                return "Unerupted tooth structure obstructed from normal eruption by adjacent bone or tooth structure.";
+            if (t.includes('restoration') || t.includes('prosthetic')) 
+                return "Radiopaque dental restoration (filling, crown, or bridge) present in marked location.";
+            if (t.includes('endodontic') || t.includes('obturation')) 
+                return "Root canal treatment or obturation material present inside root canal anatomy.";
+            if (t.includes('implant')) 
+                return "Osseointegrated endosseous dental implant fixture detected in alveolar bone.";
+            if (t.includes('surgical') || t.includes('orthodontic')) 
+                return "Surgical hardware (pin/plate) or orthodontic appliance present in radiograph.";
+            if (t.includes('root')) 
+                return "Root fragment or root resorption observed in specified region.";
+            if (t.includes('furcation')) 
+                return "Bone resorption in root furcation area of multi-rooted tooth.";
+            return "Pathological finding localized in the specified dental radiograph region.";
+        }
+
+        function hexToRgba(hex, alpha) {
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            let num = parseInt(c, 16);
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+        }
+
+        function renderSummaryCards(findings) {
+            const listContainer = document.getElementById('findingsList');
+            listContainer.innerHTML = '';
+
+            if (findings.length === 0) {
+                listContainer.innerHTML = `
+                    <div style="font-size: 0.85rem; color: var(--accent-green); background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 1.25rem; border-radius: 10px; text-align: center; line-height: 1.5;">
+                        ✅ <b>No Pathologies Detected</b><br>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">X-Ray radiograph evaluated as Normal with no localized lesions.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            findings.forEach((item, index) => {
+                const color = getFindingColor(item.finding_type);
+                const desc = getPathologyDescription(item.finding_type);
+                const confStr = item.confidence_percentage || `${(item.confidence * 100).toFixed(1)}%`;
+                const toothLoc = item.tooth_number ? item.tooth_number : 'Marked Region';
+                const bbox = item.bounding_box || {};
+                const bboxStr = bbox.x_min !== undefined ? `[${bbox.x_min.toFixed(2)}, ${bbox.y_min.toFixed(2)} - ${bbox.x_max.toFixed(2)}, ${bbox.y_max.toFixed(2)}]` : 'Marked Box Area';
+
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.style.borderLeftColor = color;
+
+                card.innerHTML = `
+                    <div class="summary-header">
+                        <div class="summary-title">
+                            <span style="color: ${color};">📍</span>
+                            <span>${item.finding_type}</span>
+                        </div>
+                        <div class="summary-conf-badge" style="border-color: ${color}; color: ${color}; background: ${hexToRgba(color, 0.15)}; font-weight: 700;">
+                            ${confStr} Match
+                        </div>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.4; margin-top: 0.25rem;">
+                        ${desc}
+                    </div>
+                    <div class="summary-details" style="margin-top: 0.35rem;">
+                        <span>🦷 Tooth: <b>${toothLoc}</b></span>
+                        <span>📦 Marked Box: <code style="color: var(--accent-cyan); font-family: monospace;">${bboxStr}</code></span>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function toggleJsonViewer() {
+            const viewer = document.getElementById('jsonViewer');
+            const btn = document.querySelector('.toggle-json-btn');
+            if (viewer.style.display === 'none' || viewer.style.display === '') {
+                viewer.style.display = 'block';
+                btn.innerText = '🙈 Hide Developer Raw JSON Payload';
+            } else {
+                viewer.style.display = 'none';
+                btn.innerText = '💻 Toggle Developer Raw JSON Payload';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { PatientProvider } from './context/PatientContext';
 import { AIProvider } from './context/AIContext';
@@ -28,46 +29,48 @@ import { HealthCheckScreen } from './pages/admin/HealthCheckScreen';
 
 export const App = () => {
   return (
-    <AuthProvider>
-      <PatientProvider>
-        <AIProvider>
-          <HashRouter>
-            <Routes>
-              {/* Public Route */}
-              <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <PatientProvider>
+          <AIProvider>
+            <HashRouter>
+              <Routes>
+                {/* Public Route */}
+                <Route path="/login" element={<LoginPage />} />
 
-              {/* Protected Workstation Shell */}
-              <Route element={<ProtectedLayout />}>
-                <Route element={<AppLayout />}>
-                  {/* Default redirect to Doctor dashboard for testing */}
-                  <Route path="/" element={<Navigate to="/doctor" replace />} />
+                {/* Protected Workstation Shell */}
+                <Route element={<ProtectedLayout />}>
+                  <Route element={<AppLayout />}>
+                    {/* Default redirect to Doctor dashboard for testing */}
+                    <Route path="/" element={<Navigate to="/doctor" replace />} />
 
-                  {/* Reception Routes */}
-                  <Route path="/reception" element={<ReceptionDashboard />} />
-                  <Route path="/reception/search" element={<PatientSearchPage />} />
+                    {/* Reception Routes */}
+                    <Route path="/reception" element={<ReceptionDashboard />} />
+                    <Route path="/reception/search" element={<PatientSearchPage />} />
 
-                  {/* Doctor Routes */}
-                  <Route path="/doctor" element={<DoctorDashboard />} />
-                  <Route path="/workspace" element={<PatientWorkspace />} />
-                  <Route path="/doctor/clinical-visit" element={<ClinicalVisitScreen />} />
-                  <Route path="/doctor/prescriptions" element={<PrescriptionModule />} />
-                  <Route path="/doctor/reports" element={<ReportModule />} />
-                  <Route path="/doctor/documents" element={<DocumentsModule />} />
-                  <Route path="/doctor/timeline" element={<TimelineModule />} />
+                    {/* Doctor Routes */}
+                    <Route path="/doctor" element={<DoctorDashboard />} />
+                    <Route path="/workspace" element={<PatientWorkspace />} />
+                    <Route path="/doctor/clinical-visit" element={<ClinicalVisitScreen />} />
+                    <Route path="/doctor/prescriptions" element={<PrescriptionModule />} />
+                    <Route path="/doctor/reports" element={<ReportModule />} />
+                    <Route path="/doctor/documents" element={<DocumentsModule />} />
+                    <Route path="/doctor/timeline" element={<TimelineModule />} />
 
-                  {/* Admin Routes */}
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/health" element={<HealthCheckScreen />} />
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/health" element={<HealthCheckScreen />} />
+                  </Route>
                 </Route>
-              </Route>
 
-              {/* Catch-all fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </HashRouter>
-        </AIProvider>
-      </PatientProvider>
-    </AuthProvider>
+                {/* Catch-all fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </HashRouter>
+          </AIProvider>
+        </PatientProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

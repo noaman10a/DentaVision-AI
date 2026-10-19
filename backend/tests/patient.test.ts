@@ -17,9 +17,13 @@ const createdPatientIds: string[] = [];
 afterAll(async () => {
   // Clean up test records from DB
   if (createdPatientIds.length > 0) {
-    await prisma.patient.deleteMany({
-      where: { id: { in: createdPatientIds } },
-    });
+    try {
+      await prisma.patient.deleteMany({
+        where: { id: { in: createdPatientIds } },
+      });
+    } catch {
+      // offline safe
+    }
   }
 });
 

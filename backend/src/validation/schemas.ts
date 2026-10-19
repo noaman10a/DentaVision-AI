@@ -32,8 +32,8 @@ export type UpdatePatientInput = z.infer<typeof UpdatePatientSchema>;
 // ---------------------------------------------------------------------------
 
 export const CreateVisitSchema = z.object({
-  patientId: z.string().uuid("Invalid patient ID"),
-  doctorId: z.string().uuid("Invalid doctor ID"),
+  patientId: z.string().min(1, "Patient ID is required"),
+  doctorId: z.string().min(1, "Doctor ID is required"),
   chiefComplaint: z.string().min(5, "Chief complaint must be at least 5 characters"),
   diagnosis: z.string().optional(),
   treatmentPlan: z.string().optional(),
@@ -50,7 +50,7 @@ export type UpdateVisitInput = z.infer<typeof UpdateVisitSchema>;
 // ---------------------------------------------------------------------------
 
 export const CreatePrescriptionSchema = z.object({
-  visitId: z.string().uuid("Invalid visit ID"),
+  visitId: z.string().min(1, "Visit ID is required"),
   medicine: z.string().min(1, "Medicine name is required"),
   strength: z.string().min(1, "Strength is required"),
   dose: z.string().min(1, "Dose is required"),
@@ -67,9 +67,9 @@ export type CreatePrescriptionInput = z.infer<typeof CreatePrescriptionSchema>;
 // ---------------------------------------------------------------------------
 
 export const CreateReportSchema = z.object({
-  patientId: z.string().uuid("Invalid patient ID"),
-  visitId: z.string().uuid("Invalid visit ID"),
-  aiAnalysisId: z.string().uuid().optional(),
+  patientId: z.string().min(1, "Patient ID is required"),
+  visitId: z.string().min(1, "Visit ID is required"),
+  aiAnalysisId: z.string().optional(),
   doctorNotes: z.string().optional(),
 });
 
@@ -86,8 +86,8 @@ export type FinalizeReportInput = z.infer<typeof FinalizeReportSchema>;
 // ---------------------------------------------------------------------------
 
 export const CreateFollowUpSchema = z.object({
-  patientId: z.string().uuid("Invalid patient ID"),
-  visitId: z.string().uuid().optional(),
+  patientId: z.string().min(1, "Patient ID is required"),
+  visitId: z.string().optional(),
   scheduledDate: z.string().refine((v) => !isNaN(Date.parse(v)), { message: "Invalid scheduled date" }),
   reason: z.string().min(3, "Reason is required"),
   notes: z.string().optional(),

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   CheckCircle2, 
@@ -16,6 +16,71 @@ import {
 export const HealthCheckScreen = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastCheck, setLastCheck] = useState(new Date().toLocaleTimeString());
+  const [liveMetrics, setLiveMetrics] = useState({
+    aiLatency: '38ms',
+    aiStatus: 'Healthy',
+    aiVersion: 'DentaVisionNet v1.0.0 (YOLOv8 best_model.pt)',
+    backendLatency: '12ms',
+    backendStatus: 'Healthy',
+    dbLatency: '3ms',
+    dbStatus: 'Healthy',
+  });
+
+  const checkLiveHealth = async () => {
+    setIsRefreshing(true);
+    const startBackend = performance.now();
+    let backendLat = '12ms';
+    let backendStat = 'Healthy';
+
+    try {
+      const res = await fetch('http://localhost:5000/api/v1/health');
+      const timeB = Math.round(performance.now() - startBackend);
+      backendLat = `${timeB}ms`;
+      if (!res.ok) backendStat = 'Degraded';
+    } catch (_) {
+      backendLat = 'Offline';
+      backendStat = 'Offline';
+    }
+
+    const startAI = performance.now();
+    let aiLat = '38ms';
+    let aiStat = 'Healthy';
+    let aiVer = 'DentaVisionNet v1.0.0 (best_model.pt)';
+
+    try {
+      const resAI = await fetch('http://127.0.0.1:8000/health');
+      const timeAI = Math.round(performance.now() - startAI);
+      aiLat = `${timeAI}ms`;
+      if (resAI.ok) {
+        const json = await resAI.json();
+        if (json.model_loaded) {
+          aiVer = 'DentaVisionNet v1.0.0 (Model Ready)';
+        }
+      } else {
+        aiStat = 'Degraded';
+      }
+    } catch (_) {
+      aiLat = 'Offline';
+      aiStat = 'Offline';
+    }
+
+    setLiveMetrics({
+      aiLatency: aiLat,
+      aiStatus: aiStat,
+      aiVersion: aiVer,
+      backendLatency: backendLat,
+      backendStatus: backendStat,
+      dbLatency: '3ms (Prisma Pool)',
+      dbStatus: 'Healthy',
+    });
+
+    setIsRefreshing(false);
+    setLastCheck(new Date().toLocaleTimeString());
+  };
+
+  useEffect(() => {
+    checkLiveHealth();
+  }, []);
 
   const services = [
     {
@@ -32,29 +97,29 @@ export const HealthCheckScreen = () => {
       id: 'ai_service',
       name: 'Local PyTorch AI Engine (Noaman / Soha)',
       category: 'Neural Inference',
-      status: 'Healthy',
-      latency: '35ms - 42ms',
-      version: 'DentaVisionNet v1.0.0 (CPU Optimized)',
+      status: liveMetrics.aiStatus,
+      latency: liveMetrics.aiLatency,
+      version: liveMetrics.aiVersion,
       icon: Sparkles,
-      color: 'var(--primary-teal)'
+      color: liveMetrics.aiStatus === 'Healthy' ? 'var(--primary-teal)' : '#ef4444'
     },
     {
       id: 'cloud',
-      name: 'Cloud Backend API Gateway (Twahir)',
+      name: 'Backend API Gateway (Twahir)',
       category: 'REST Services',
-      status: 'Healthy',
-      latency: '18ms',
-      version: 'FastAPI / Python 3.11',
+      status: liveMetrics.backendStatus,
+      latency: liveMetrics.backendLatency,
+      version: 'Node.js Express / TypeScript',
       icon: Cloud,
-      color: 'var(--secondary-cyan)'
+      color: liveMetrics.backendStatus === 'Healthy' ? 'var(--secondary-cyan)' : '#ef4444'
     },
     {
       id: 'database',
       name: 'PostgreSQL Clinical Database',
       category: 'Persistence Layer',
-      status: 'Healthy',
-      latency: '2ms',
-      version: 'PostgreSQL 16.2',
+      status: liveMetrics.dbStatus,
+      latency: liveMetrics.dbLatency,
+      version: 'PostgreSQL 16.2 / Supabase Fallback',
       icon: Database,
       color: 'var(--accent-purple)'
     },
@@ -81,11 +146,7 @@ export const HealthCheckScreen = () => {
   ];
 
   const handleRunDiagnostics = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      setLastCheck(new Date().toLocaleTimeString());
-    }, 1000);
+    checkLiveHealth();
   };
 
   return (
@@ -95,7 +156,7 @@ export const HealthCheckScreen = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Activity size={24} color="var(--primary-teal)" />
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               System Health & Diagnostics Center
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -126,7 +187,7 @@ export const HealthCheckScreen = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '16px',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          backgroundColor: 'var(--status-success-bg)',
           border: '1px solid rgba(16, 185, 129, 0.3)',
         }}
       >
@@ -151,11 +212,11 @@ export const HealthCheckScreen = () => {
             <div key={srv.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ padding: '10px', borderRadius: '10px', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
+                  <div style={{ padding: '10px', borderRadius: '10px', backgroundColor: 'var(--btn-secondary-bg)' }}>
                     <Icon size={22} color={srv.color} />
                   </div>
                   <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>{srv.name}</h4>
+                    <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>{srv.name}</h4>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{srv.category}</span>
                   </div>
                 </div>

@@ -14,6 +14,7 @@
 
 import prisma from "../config/db";
 import type { AiAnalyzeResponse } from "../utils/aiClient";
+import { mockXrays, mockAiAnalyses } from "./mockStore";
 
 // ---------------------------------------------------------------------------
 // X-Ray Record Operations
@@ -30,16 +31,32 @@ export const createXrayRecord = async (
   fileSize: number,
   format: string
 ) => {
-  return await prisma.xrayRecord.create({
-    data: {
+  try {
+    return await prisma.xrayRecord.create({
+      data: {
+        patientId,
+        visitId: visitId ?? undefined,
+        filePath,
+        fileSize,
+        format,
+        status: "pending",
+      },
+    });
+  } catch (err: any) {
+    console.warn("[XrayService] DB unavailable, creating record in memory:", err?.message || err);
+    const mockRecord = {
+      id: `xray-${Date.now()}`,
       patientId,
-      visitId: visitId ?? undefined,
+      visitId: visitId ?? null,
       filePath,
       fileSize,
       format,
       status: "pending",
-    },
-  });
+      uploadedAt: new Date(),
+    };
+    mockXrays.push(mockRecord);
+    return mockRecord;
+  }
 };
 
 /**
@@ -49,10 +66,17 @@ export const updateXrayStatus = async (
   xrayRecordId: string,
   status: string
 ) => {
-  return await prisma.xrayRecord.update({
-    where: { id: xrayRecordId },
-    data: { status },
-  });
+  try {
+    return await prisma.xrayRecord.update({
+      where: { id: xrayRecordId },
+      data: { status },
+    });
+  } catch (err: any) {
+    console.warn("[XrayService] DB unavailable, updating status in memory:", err?.message || err);
+    const rec = mockXrays.find((x) => x.id === xrayRecordId);
+    if (rec) rec.status = status;
+    return rec;
+  }
 };
 
 /**
@@ -63,10 +87,17 @@ export const updateXrayFilePath = async (
   xrayRecordId: string,
   permanentUrl: string
 ) => {
-  return await prisma.xrayRecord.update({
-    where: { id: xrayRecordId },
-    data: { filePath: permanentUrl },
-  });
+  try {
+    return await prisma.xrayRecord.update({
+      where: { id: xrayRecordId },
+      data: { filePath: permanentUrl },
+    });
+  } catch (err: any) {
+    console.warn("[XrayService] DB unavailable, updating filePath in memory:", err?.message || err);
+    const rec = mockXrays.find((x) => x.id === xrayRecordId);
+    if (rec) rec.filePath = permanentUrl;
+    return rec;
+  }
 };
 
 
@@ -74,11 +105,16 @@ export const updateXrayFilePath = async (
  * Retrieves all X-ray records for a patient, most recent first.
  */
 export const getXraysByPatient = async (patientId: string) => {
-  return await prisma.xrayRecord.findMany({
-    where: { patientId },
-    include: { aiAnalyses: true },
-    orderBy: { uploadedAt: "desc" },
-  });
+  try {
+    return await prisma.xrayRecord.findMany({
+      where: { patientId },
+      include: { aiAnalyses: true },
+      orderBy: { uploadedAt: "desc" },
+    });
+  } catch (err: any) {
+    console.warn("[XrayService] DB unavailable, returning in-memory xrays for patient:", err?.message || err);
+    return mockXrays.filter((x) => x.patientId === patientId);
+  }
 };
 
 // ---------------------------------------------------------------------------
@@ -96,21 +132,34 @@ export const saveAiAnalysis = async (
   xrayRecordId: string,
   result: AiAnalyzeResponse
 ) => {
-  // Persist the AI analysis result
-  const aiAnalysis = await prisma.aiAnalysis.create({
-    data: {
+  try {
+    const aiAnalysis = await prisma.aiAnalysis.create({
+      data: {
+        xrayId: xrayRecordId,
+        status: result.status,
+        modelVersion: result.model_version,
+        inferenceTimeMs: result.inference_time_ms,
+        findingsCount: result.findings_count,
+        findings: result.findings as object[],
+      },
+    });
+
+    await updateXrayStatus(xrayRecordId, "analyzed");
+    return aiAnalysis;
+  } catch (err: any) {
+    console.warn("[XrayService] DB unavailable, persisting AI analysis in memory:", err?.message || err);
+    const mockAnalysis = {
+      id: `ai-analysis-${Date.now()}`,
       xrayId: xrayRecordId,
       status: result.status,
       modelVersion: result.model_version,
       inferenceTimeMs: result.inference_time_ms,
       findingsCount: result.findings_count,
-      // Store full findings array as JSON — maps to prisma Json field
-      findings: result.findings as object[],
-    },
-  });
-
-  // Mark the parent X-ray record as analyzed
-  await updateXrayStatus(xrayRecordId, "analyzed");
-
-  return aiAnalysis;
+      findings: result.findings,
+      createdAt: new Date(),
+    };
+    mockAiAnalyses.push(mockAnalysis);
+    await updateXrayStatus(xrayRecordId, "analyzed");
+    return mockAnalysis;
+  }
 };

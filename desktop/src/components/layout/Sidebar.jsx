@@ -51,8 +51,17 @@ export const Sidebar = () => {
           { label: 'User Directory', path: '/reception/search', icon: Users },
           { label: 'Patient Workspace', path: '/workspace', icon: FolderHeart },
         ];
+      case 'assistant':
+      case 'hygienist':
+      case 'nurse':
+      case 'staff':
       default:
-        return [];
+        return [
+          { label: 'Staff Workspace', path: '/workspace', icon: FolderHeart },
+          { label: 'Clinical Visit', path: '/doctor/clinical-visit', icon: Stethoscope },
+          { label: 'Search Patients', path: '/reception/search', icon: Search },
+          { label: 'Patient Timeline', path: '/doctor/timeline', icon: History },
+        ];
     }
   };
 
@@ -67,7 +76,7 @@ export const Sidebar = () => {
         borderRight: '1px solid var(--border-glass)',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease',
         position: 'relative',
         zIndex: 20,
       }}
@@ -89,7 +98,7 @@ export const Sidebar = () => {
                 width: '36px',
                 height: '36px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, var(--primary-teal), var(--secondary-cyan))',
+                background: 'var(--primary-teal)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -99,7 +108,7 @@ export const Sidebar = () => {
               <Sparkles size={20} color="#fff" />
             </div>
             <div>
-              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: '#fff', letterSpacing: '-0.5px' }}>
+              <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
                 DentaVision <span style={{ color: 'var(--primary-teal)' }}>AI</span>
               </h1>
               <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Clinical Desktop v1.0</p>
@@ -113,7 +122,7 @@ export const Sidebar = () => {
               width: '40px',
               height: '40px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--primary-teal), var(--secondary-cyan))',
+              background: 'var(--primary-teal)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -126,7 +135,7 @@ export const Sidebar = () => {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           style={{
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'var(--btn-secondary-bg)',
             border: '1px solid var(--border-glass)',
             color: 'var(--text-secondary)',
             borderRadius: '6px',
@@ -146,7 +155,7 @@ export const Sidebar = () => {
         <div style={{ padding: '16px 20px 8px' }}>
           <div
             style={{
-              backgroundColor: 'rgba(20, 184, 166, 0.1)',
+              backgroundColor: 'var(--primary-teal-glow)',
               border: '1px solid var(--border-accent)',
               borderRadius: '8px',
               padding: '8px 12px',
@@ -187,15 +196,16 @@ export const Sidebar = () => {
                     justifyContent: isCollapsed ? 'center' : 'flex-start',
                     borderRadius: '8px',
                     color: isActive ? '#fff' : 'var(--text-secondary)',
-                    backgroundColor: isActive ? 'var(--primary-teal-glow)' : 'transparent',
-                    border: isActive ? '1px solid var(--border-accent)' : '1px solid transparent',
+                    backgroundColor: isActive ? 'var(--primary-teal)' : 'transparent',
+                    border: isActive ? '1px solid var(--primary-teal)' : '1px solid transparent',
                     textDecoration: 'none',
                     fontSize: '14px',
                     fontWeight: isActive ? '600' : '500',
                     transition: 'all 0.2s ease',
+                    boxShadow: isActive ? '0 4px 12px var(--primary-teal-glow)' : 'none',
                   }}
                 >
-                  <Icon size={20} color={isActive ? 'var(--primary-teal)' : 'currentColor'} />
+                  <Icon size={20} color={isActive ? '#fff' : 'currentColor'} />
                   {!isCollapsed && <span>{item.label}</span>}
                 </NavLink>
               </li>

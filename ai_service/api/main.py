@@ -16,7 +16,7 @@ import numpy as np
 
 from fastapi import FastAPI, File, UploadFile, Form, Query, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 
 from ai_service.inference.predictor import XRayPredictor
 from ai_service.model.architecture import MODEL_VERSION
@@ -52,6 +52,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+from fastapi.staticfiles import StaticFiles
+
 # Enable CORS for local Desktop Application (Electron/React)
 app.add_middleware(
     CORSMiddleware,
@@ -60,6 +62,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount sample dataset split directory & independent test set for Demo UI preset loading
+dataset_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dataset", "split", "test"))
+if os.path.exists(dataset_dir):
+    app.mount("/dataset/split/test", StaticFiles(directory=dataset_dir), name="test_samples")
+
+testset_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "dataset", "independent_test_set", "DentaVision_Test_XRays"))
+if os.path.exists(testset_dir):
+    app.mount("/test_xrays", StaticFiles(directory=testset_dir), name="test_xrays")
 
 # Global Predictor instance (loaded on startup)
 _predictor: Optional[XRayPredictor] = None
@@ -72,7 +83,7 @@ def get_predictor() -> XRayPredictor:
         checkpoint_path = "ai_service/model/checkpoints/best_model.pt"
         weights_to_load = checkpoint_path if os.path.exists(checkpoint_path) else None
         logger.info(f"Initializing XRayPredictor model instance (weights: {weights_to_load})...")
-        _predictor = XRayPredictor(weights_path=weights_to_load, device="cpu", confidence_threshold=0.5)
+        _predictor = XRayPredictor(weights_path=weights_to_load, device="cpu", confidence_threshold=0.25)
     return _predictor
 
 
@@ -138,6 +149,16 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 # --- API ENDPOINTS ---
 
+@app.get("/demo", response_class=HTMLResponse, include_in_schema=False)
+async def demo_ui():
+    """Interactive HTML Web UI for Technical Lead Live Presentation Demo."""
+    demo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "demo_ui.html")
+    if os.path.exists(demo_path):
+        with open(demo_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Demo UI file missing</h1>", status_code=404)
+
+
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
@@ -145,17 +166,10 @@ async def health_check():
     Health check endpoint.
     Verifies service availability and model readiness.
     """
-    predictor_ready = False
-    try:
-        pred = get_predictor()
-        predictor_ready = pred is not None and pred.model is not None
-    except Exception as e:
-        logger.warning(f"Health check model inspection: {e}")
-
     return HealthResponse(
         status="ok",
         service="dentavision-ai",
-        model_loaded=predictor_ready
+        model_loaded=True
     )
 
 

@@ -129,6 +129,55 @@ class ContrastEnhancer:
             return image
 
 
+class IEEEPaperEnhancer:
+    """
+    Implements the official IEEE 2023 Paper Image Enhancement Pipeline:
+    1. Gaussian & Laplacian Pyramids (Eq. 1-2): Noise removal & detail enhancement
+    2. Lookup Table Power Transformation: (j / 255)^1.5 * 255
+    3. Automatic Alpha-Beta Linear Contrast Adjustment: output = alpha * input + beta
+    """
+    @staticmethod
+    def enhance_image(image: np.ndarray) -> np.ndarray:
+        try:
+            import cv2
+            img = image.copy()
+
+            # 1. Lookup Table Power Transformation (Eq 1 from Paper: (j / 255)^1.5 * 255)
+            lut = np.array([((i / 255.0) ** 1.5) * 255 for i in range(256)]).astype(np.uint8)
+            if len(img.shape) == 3:
+                img = cv2.LUT(img, lut)
+            else:
+                img = cv2.LUT(img, lut)
+
+            # 2. Gaussian and Laplacian Pyramid Enhancement
+            if len(img.shape) == 3:
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            else:
+                gray = img.copy()
+
+            down = cv2.pyrDown(gray)
+            up = cv2.pyrUp(down, dstsize=(gray.shape[1], gray.shape[0]))
+            laplacian = cv2.subtract(gray, up)
+
+            enhanced_gray = cv2.add(gray, laplacian)
+
+            # 3. Automatic Brightness & Contrast Adjustment (Eq 2-4 from Paper: output = alpha * input + beta)
+            a_min, a_max = 0.0, 255.0
+            a_low, a_high = float(np.min(enhanced_gray)), float(np.max(enhanced_gray))
+
+            if a_high > a_low:
+                alpha = (a_max - a_min) / (a_high - a_low)
+                beta = a_min - (a_low * alpha)
+                enhanced_gray = cv2.convertScaleAbs(enhanced_gray, alpha=alpha, beta=beta)
+
+            if len(image.shape) == 3:
+                return cv2.cvtColor(enhanced_gray, cv2.COLOR_GRAY2BGR)
+            return enhanced_gray
+        except Exception as e:
+            logger.warning(f"IEEE Paper Enhancer fallback: {str(e)}")
+            return image
+
+
 class ImageResizer:
     @staticmethod
     def resize(image: np.ndarray, target_size: Tuple[int, int] = (640, 640)) -> Tuple[np.ndarray, Dict[str, float]]:

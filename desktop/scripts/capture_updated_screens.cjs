@@ -28,12 +28,12 @@ app.whenReady().then(async () => {
   try {
     // 1. Clean Login Page
     await win.loadURL('http://localhost:3000/#/login');
-    await sleep(2000);
+    await sleep(1500);
     let img = await win.webContents.capturePage();
     fs.writeFileSync(path.join(outputDir, 'screen_0_login_clean.png'), img.toPNG());
     console.log('✅ Captured screen_0_login_clean.png');
 
-    // 2. Perform Doctor Sign In via UI with valid password: password123
+    // 2. Perform Doctor Sign In via UI with valid credentials
     await win.webContents.executeJavaScript(`
       (() => {
         const emailInput = document.querySelector('input[type="email"]');
@@ -50,26 +50,46 @@ app.whenReady().then(async () => {
         setTimeout(() => form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true })), 200);
       })();
     `);
-    await sleep(3000);
+    await sleep(2500);
 
-    // Capture Doctor Dashboard with Teeth Chart
+    // Capture Clean Doctor Dashboard (No Teeth Chart here anymore)
     img = await win.webContents.capturePage();
-    fs.writeFileSync(path.join(outputDir, 'screen_1_doctor_with_teeth_chart.png'), img.toPNG());
-    console.log('✅ Captured screen_1_doctor_with_teeth_chart.png');
+    fs.writeFileSync(path.join(outputDir, 'screen_1_doctor_dashboard_clean.png'), img.toPNG());
+    console.log('✅ Captured screen_1_doctor_dashboard_clean.png');
 
-    // 3. Navigate to Profile
-    await win.webContents.executeJavaScript(`window.location.hash = '#/profile';`);
-    await sleep(2000);
-    img = await win.webContents.capturePage();
-    fs.writeFileSync(path.join(outputDir, 'screen_4_profile_clean.png'), img.toPNG());
-    console.log('✅ Captured screen_4_profile_clean.png');
+    // 3. Navigate to Patient Workspace
+    await win.webContents.executeJavaScript(`window.location.hash = '#/workspace';`);
+    await sleep(2500);
 
-    // 4. Navigate to Reception Desk
-    await win.webContents.executeJavaScript(`window.location.hash = '#/reception';`);
-    await sleep(2000);
+    // 3A. Radiograph view (Top of page)
     img = await win.webContents.capturePage();
-    fs.writeFileSync(path.join(outputDir, 'screen_2_reception_clean.png'), img.toPNG());
-    console.log('✅ Captured screen_2_reception_clean.png');
+    fs.writeFileSync(path.join(outputDir, 'screen_3a_radiograph_view.png'), img.toPNG());
+    console.log('✅ Captured screen_3a_radiograph_view.png');
+
+    // 3B. Scroll down to show Odontogram Heat Chart directly below the X-Ray
+    await win.webContents.executeJavaScript(`
+      (() => {
+        const vp = document.querySelector('.page-viewport');
+        if (vp) vp.scrollTop = 580;
+      })();
+    `);
+    await sleep(1000);
+    img = await win.webContents.capturePage();
+    fs.writeFileSync(path.join(outputDir, 'screen_3b_odontogram_heat_chart.png'), img.toPNG());
+    console.log('✅ Captured screen_3b_odontogram_heat_chart.png');
+
+    // 4. Open Modify Finding Modal
+    await win.webContents.executeJavaScript(`
+      (() => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const modifyBtn = buttons.find(b => b.textContent.trim() === 'Modify' || b.textContent.includes('Modify'));
+        if (modifyBtn) modifyBtn.click();
+      })();
+    `);
+    await sleep(1200);
+    img = await win.webContents.capturePage();
+    fs.writeFileSync(path.join(outputDir, 'screen_3c_modify_finding_modal.png'), img.toPNG());
+    console.log('✅ Captured screen_3c_modify_finding_modal.png');
 
   } catch (err) {
     console.error('❌ Capture error:', err);

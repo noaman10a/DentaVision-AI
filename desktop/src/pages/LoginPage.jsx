@@ -2,16 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Sparkles, 
   Lock, 
   Mail, 
   ArrowRight, 
   AlertCircle, 
   Eye, 
-  EyeOff, 
-  ShieldCheck, 
-  Cpu,
-  CheckCircle2
+  EyeOff
 } from 'lucide-react';
 import heroGraphic from '../assets/dentavision_hero.png';
 
@@ -356,136 +352,6 @@ export const LoginPage = () => {
               />
             </div>
           </div>
-
-          {/* Floating Lottie-Style Clinical Intelligence Badges */}
-          {/* Badge 1: Top Right */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '9%',
-              right: '6%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '10px 16px',
-              borderRadius: '30px',
-              background: 'rgba(10, 20, 42, 0.88)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(0, 210, 255, 0.45)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(0, 210, 255, 0.25)',
-              animation: 'badgeFloat1 6s ease-in-out infinite',
-              zIndex: 5,
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #00d2ff, #2563eb)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Sparkles size={16} color="#fff" />
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: '#f8fafc', letterSpacing: '0.2px' }}>
-                YOLOv8 Dual Engine
-              </div>
-              <div style={{ fontSize: '10.5px', color: '#38bdf8' }}>
-                14-Class Dental Detection
-              </div>
-            </div>
-          </div>
-
-          {/* Badge 2: Bottom Left */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '8%',
-              left: '5%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '10px 16px',
-              borderRadius: '30px',
-              background: 'rgba(10, 20, 42, 0.88)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(16, 185, 129, 0.2)',
-              animation: 'badgeFloat2 5.5s ease-in-out infinite 0.8s',
-              zIndex: 5,
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <ShieldCheck size={16} color="#fff" />
-            </div>
-            <div>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: '#f8fafc' }}>
-                Human-in-the-Loop
-              </div>
-              <div style={{ fontSize: '10.5px', color: '#34d399' }}>
-                Attestation & Audit Ready
-              </div>
-            </div>
-          </div>
-
-          {/* Badge 3: Bottom Right */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '7%',
-              right: '5%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '9px 15px',
-              borderRadius: '30px',
-              background: 'rgba(10, 20, 42, 0.88)',
-              backdropFilter: 'blur(16px)',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 18px rgba(56, 189, 248, 0.2)',
-              animation: 'badgeFloat3 6.5s ease-in-out infinite 1.4s',
-              zIndex: 5,
-            }}
-          >
-            <div
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Cpu size={15} color="#fff" />
-            </div>
-            <div>
-              <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#f8fafc' }}>
-                Offline Edge AI
-              </div>
-              <div style={{ fontSize: '10px', color: '#93c5fd' }}>
-                &lt;40ms Local PACS
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ================= RIGHT SECTION: SLEEK GLASSMORPHIC LOGIN ================= */}
@@ -500,42 +366,6 @@ export const LoginPage = () => {
             position: 'relative',
           }}
         >
-          {/* Top Clinical Gateway Status Pill */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              background: 'rgba(0, 210, 255, 0.08)',
-              border: '1px solid rgba(0, 210, 255, 0.28)',
-              width: 'fit-content',
-              marginBottom: '20px',
-            }}
-          >
-            <div
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#00d2ff',
-                animation: 'livePulse 2s infinite',
-              }}
-            />
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: '700',
-                letterSpacing: '0.8px',
-                color: '#38bdf8',
-                textTransform: 'uppercase',
-              }}
-            >
-              Clinical Desktop Gateway v1.0
-            </span>
-          </div>
-
           {/* Heading */}
           <div style={{ marginBottom: '28px' }}>
             <h1
@@ -550,16 +380,6 @@ export const LoginPage = () => {
             >
               Sign In to Workstation
             </h1>
-            <p
-              style={{
-                fontSize: '13.5px',
-                color: '#94a3b8',
-                marginTop: '6px',
-                lineHeight: '1.5',
-              }}
-            >
-              Enter your clinic email to automatically route to your assigned clinical role.
-            </p>
           </div>
 
           {/* Error Alert Box */}
@@ -810,31 +630,6 @@ export const LoginPage = () => {
               )}
             </button>
           </form>
-
-          {/* Secure Clinical Footnote */}
-          <div
-            style={{
-              marginTop: '32px',
-              paddingTop: '20px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '16px',
-              fontSize: '11.5px',
-              color: '#64748b',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <ShieldCheck size={14} color="#00d2ff" />
-              <span>AES-256 Encrypted Session</span>
-            </div>
-            <span>•</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <CheckCircle2 size={14} color="#10b981" />
-              <span>Local PACS Ready</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

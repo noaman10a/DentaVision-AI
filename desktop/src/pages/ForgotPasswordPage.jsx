@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { Sparkles, Mail, Lock, KeyRound, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Moon, Sun, ShieldCheck } from 'lucide-react';
+import { Sparkles, Mail, Lock, KeyRound, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, ShieldCheck } from 'lucide-react';
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const { isEmailRegistered, resetPassword } = useAuth();
-  const { theme, toggleTheme } = useTheme();
 
   // Steps: 1 = Email Input, 2 = OTP Verification, 3 = New Password, 4 = Success Confirmation
   const [step, setStep] = useState(1);
@@ -127,41 +125,34 @@ export const ForgotPasswordPage = () => {
         transition: 'var(--transition-theme)',
       }}
     >
-      {/* Top Right Theme Toggle */}
-      <button
-        onClick={toggleTheme}
+      {/* Atmospheric Ambient Radial Glow */}
+      <div
         style={{
           position: 'absolute',
-          top: '24px',
-          right: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: 'var(--btn-secondary-bg)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: 'var(--radius-full)',
-          padding: '6px 14px',
-          color: 'var(--text-primary)',
-          cursor: 'pointer',
-          boxShadow: 'var(--shadow-sm)',
-          transition: 'var(--transition-theme)',
-          outline: 'none',
-          zIndex: 10,
+          top: '-15%',
+          left: '15%',
+          width: '550px',
+          height: '550px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0, 210, 255, 0.12) 0%, rgba(0, 2, 15, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1,
         }}
-        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {theme === 'dark' ? (
-          <>
-            <Moon size={16} color="var(--primary-teal)" />
-            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Dark Mode</span>
-          </>
-        ) : (
-          <>
-            <Sun size={16} color="#f59e0b" />
-            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>Light Mode</span>
-          </>
-        )}
-      </button>
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '-15%',
+          right: '15%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(0, 2, 15, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
 
       <div
         className="glass-card fade-in"

@@ -304,33 +304,7 @@ export const XRayViewer = () => {
             </div>
           )}
 
-          {/* Contrast Radiography Presets (STD, BONE, ENAM, NEG) */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--btn-secondary-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-glass)', padding: '2px' }}>
-            {['STD', 'BONE', 'ENAM', 'NEG'].map((pName) => (
-              <button
-                key={pName}
-                onClick={() => applyPreset(pName)}
-                style={{
-                  background: preset === pName ? 'var(--primary-teal)' : 'transparent',
-                  color: preset === pName ? '#ffffff' : 'var(--text-secondary)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 7px',
-                  fontSize: '10.5px',
-                  fontWeight: '700',
-                  cursor: 'pointer'
-                }}
-                title={
-                  pName === 'STD' ? 'Standard Radiograph' :
-                  pName === 'BONE' ? 'Bone Density Enhanced (High Contrast)' :
-                  pName === 'ENAM' ? 'Enamel-Dentin Junction Enhanced' :
-                  'Negative / Inverted Radiograph (Hairline Cracks & Apexes)'
-                }
-              >
-                {pName}
-              </button>
-            ))}
-          </div>
+
 
           {/* Zoom Controls */}
           <button onClick={() => setZoom(prev => Math.min(prev + 0.2, 3.0))} className="btn-secondary" style={{ padding: '6px 9px' }} title="Zoom In">

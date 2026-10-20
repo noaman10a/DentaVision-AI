@@ -15,6 +15,8 @@ import {
   Activity
 } from 'lucide-react';
 
+import { TeethChart } from '../../components/clinical/TeethChart';
+
 export const DoctorDashboard = () => {
   const navigate = useNavigate();
   const { patients, selectPatientById } = usePatients();
@@ -41,7 +43,6 @@ export const DoctorDashboard = () => {
         }}
       >
         <div>
-          <div className="badge badge-info" style={{ marginBottom: '8px' }}>Senior Dental Surgeon</div>
           <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>
             Doctor Clinical Workstation
           </h2>
@@ -98,6 +99,9 @@ export const DoctorDashboard = () => {
           );
         })}
       </div>
+
+      {/* Interactive Clinical Teeth Chart (FDI Odontogram) */}
+      <TeethChart />
 
       {/* Patients Needing Review & AI Highlight */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>

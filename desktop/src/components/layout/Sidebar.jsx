@@ -140,32 +140,7 @@ export const Sidebar = () => {
         </button>
       </div>
 
-      {/* Role Badge Indicator */}
-      {!isCollapsed && (
-        <div style={{ padding: '16px 20px 8px' }}>
-          <div
-            style={{
-              backgroundColor: 'var(--primary-teal-glow)',
-              border: '1px solid var(--border-accent)',
-              borderRadius: '8px',
-              padding: '8px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary-teal)', boxShadow: '0 0 8px var(--primary-teal)' }} />
-            <div>
-              <p style={{ fontSize: '10px', textTransform: 'uppercase', tracking: '1px', color: 'var(--primary-teal)', fontWeight: '700' }}>
-                Active Mode
-              </p>
-              <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                {user?.roleLabel || 'Staff Workstation'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Navigation List */}
       <nav style={{ flex: 1, padding: '12px 10px', overflowY: 'auto' }}>

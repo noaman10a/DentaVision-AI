@@ -33,17 +33,8 @@ export const ProfilePage = () => {
     avatar: user?.avatar || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
   });
 
-  const [avatarUrlInput, setAvatarUrlInput] = useState('');
-  const [showAvatarInput, setShowAvatarInput] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
-
-  const avatarPresets = [
-    { label: 'Doctor 1', url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80' },
-    { label: 'Doctor 2', url: 'https://images.unsplash.com/photo-1594824813566-88855ce78961?w=150&auto=format&fit=crop&q=80' },
-    { label: 'Doctor 3', url: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80' },
-    { label: 'Admin', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
-  ];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -196,76 +187,6 @@ export const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Quick Avatar Presets */}
-            <div style={{ width: '100%', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px' }}>Quick Photo Presets</p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                {avatarPresets.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleInputChange('avatar', preset.url)}
-                    style={{
-                      padding: 0,
-                      border: formData.avatar === preset.url ? '2px solid var(--primary-teal)' : '1px solid var(--border-glass)',
-                      borderRadius: '50%',
-                      background: 'none',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      width: '32px',
-                      height: '32px',
-                    }}
-                    title={preset.label}
-                  >
-                    <img src={preset.url} alt={preset.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom URL Input Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowAvatarInput(!showAvatarInput)}
-              style={{
-                marginTop: '12px',
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontSize: '11px',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-              }}
-            >
-              {showAvatarInput ? 'Hide URL Input' : 'Or paste image link'}
-            </button>
-
-            {showAvatarInput && (
-              <div style={{ marginTop: '8px', width: '100%' }}>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="https://...image.jpg"
-                  value={avatarUrlInput}
-                  onChange={(e) => setAvatarUrlInput(e.target.value)}
-                  style={{ fontSize: '11px', height: '32px' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (avatarUrlInput.trim()) {
-                      handleInputChange('avatar', avatarUrlInput.trim());
-                      setAvatarUrlInput('');
-                      setShowAvatarInput(false);
-                    }
-                  }}
-                  className="btn-secondary"
-                  style={{ width: '100%', marginTop: '4px', fontSize: '11px', padding: '4px' }}
-                >
-                  Apply Photo Link
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Workstation Security Box */}

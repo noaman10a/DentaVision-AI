@@ -5,20 +5,20 @@
 
 :root, [data-theme="dark"] {
   /* Backgrounds aligned with DentaVision Cyber Tooth Palette */
-  --bg-dark-base: #050814;
-  --bg-dark-surface: #0a1124;
-  --bg-dark-card: #0d162e;
-  --bg-dark-hover: #142244;
-  --bg-glass: rgba(10, 17, 36, 0.85);
+  --bg-dark-base: #00020f;
+  --bg-dark-surface: #040817;
+  --bg-dark-card: #081026;
+  --bg-dark-hover: #0d1938;
+  --bg-glass: rgba(8, 16, 38, 0.85);
 
   /* Borders */
-  --border-glass: rgba(56, 189, 248, 0.18);
-  --border-subtle: #162447;
+  --border-glass: rgba(0, 210, 255, 0.16);
+  --border-subtle: #0d1b3a;
   --border-accent: rgba(0, 210, 255, 0.45);
 
   /* Primary & Accents */
   --primary-teal: #00d2ff;
-  --primary-teal-hover: #0ea5e9;
+  --primary-teal-hover: #00b4dc;
   --primary-teal-glow: rgba(0, 210, 255, 0.25);
   --secondary-cyan: #38bdf8;
   --accent-blue: #2563eb;

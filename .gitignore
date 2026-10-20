@@ -40,11 +40,16 @@ dataset/
 # Environment
 .env
 .venv
+.venv_gpu/
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Testing & Cache
+.pytest_cache/
+*.log
 
 # Node / Desktop / Backend
 node_modules/

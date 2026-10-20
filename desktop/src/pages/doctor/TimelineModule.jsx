@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
-import { History, UserPlus, Stethoscope, Sparkles, FileText, Calendar, CheckCircle2 } from 'lucide-react';
+import { History, UserPlus, Stethoscope, Sparkles, FileText, Calendar, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 export const TimelineModule = () => {
+  const navigate = useNavigate();
   const { activePatient } = usePatients();
 
   const timelineEvents = [
@@ -110,15 +112,23 @@ export const TimelineModule = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => navigate('/workspace')}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
           <History size={24} color="var(--primary-teal)" />
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Chronological Patient Journey Timeline
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Patient: <strong>{activePatient?.name} ({activePatient?.id})</strong>
+              Patient: <strong>{activePatient?.name || 'Unassigned'} ({activePatient?.id || 'PT-2026-0705'})</strong>
             </p>
           </div>
         </div>

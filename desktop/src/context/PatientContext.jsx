@@ -82,7 +82,7 @@ const initialPatients = [
 
 export const PatientProvider = ({ children }) => {
   const [patients, setPatients] = useState(initialPatients);
-  const [activePatient, setActivePatient] = useState(initialPatients[0]);
+  const [activePatient, setActivePatient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch registered patients from backend with local initialPatients fallback
@@ -109,7 +109,6 @@ export const PatientProvider = ({ children }) => {
           visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits
         }));
         setPatients(mapped);
-        setActivePatient(prev => prev || mapped[0]);
         return mapped;
       }
     } catch (err) {

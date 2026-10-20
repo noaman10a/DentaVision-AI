@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, ArrowLeft } from 'lucide-react';
 
 export const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { searchQuery, setSearchQuery } = usePatients();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const isMainLanding = ['/', '/doctor', '/reception', '/admin'].includes(location.pathname);
 
   const notifications = [
     { id: 1, title: 'AI Detection Ready', desc: 'X-ray analysis completed for Amina Rahmani (#PT-2026-0705)', time: '2m ago' },
@@ -14,6 +19,7 @@ export const Header = () => {
 
   return (
     <header
+      className="no-print"
       style={{
         height: '64px',
         backgroundColor: 'var(--bg-dark-surface)',
@@ -28,8 +34,29 @@ export const Header = () => {
         transition: 'var(--transition-theme)',
       }}
     >
-      {/* Search Input Only */}
-      <div style={{ display: 'flex', alignItems: 'center', flex: 1, maxWidth: '480px' }}>
+      {/* Navigation & Search Area */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '540px' }}>
+        {!isMainLanding && (
+          <button
+            onClick={() => navigate(-1)}
+            className="btn-secondary"
+            style={{
+              height: '40px',
+              padding: '0 12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              borderRadius: '8px',
+              flexShrink: 0
+            }}
+            title="Go back to previous page"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        )}
+
         <div style={{ position: 'relative', width: '100%' }}>
           <Search
             size={18}

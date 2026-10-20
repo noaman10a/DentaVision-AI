@@ -317,3 +317,59 @@ html, body, #root {
   }
 }
 
+/* ==========================================================================
+   Print & PDF Export Media Rules (Clean Clinical Documents)
+   ========================================================================== */
+@media print {
+  /* Hide application shell, navigation bars, and action controls */
+  aside,
+  header,
+  .no-print,
+  button,
+  input[type="file"],
+  nav {
+    display: none !important;
+  }
+
+  html, body, #root, .app-container, .main-content-wrapper, .page-viewport {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .glass-card {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    page-break-inside: avoid;
+  }
+
+  .printable-document {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Force dark text for readability */
+  h1, h2, h3, h4, h5, p, span, strong, td, th {
+    color: #0f172a !important;
+  }
+
+  .badge {
+    border: 1px solid #94a3b8 !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+}
+
+

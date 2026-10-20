@@ -15,6 +15,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ReceptionDashboard } from './pages/reception/ReceptionDashboard';
 import { PatientRegistrationPage } from './pages/reception/PatientRegistrationPage';
 import { PatientSearchPage } from './pages/reception/PatientSearchPage';
+import { SchedulePage } from './pages/reception/SchedulePage';
 
 // Doctor Pages
 import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
@@ -73,6 +74,7 @@ export const App = () => {
                     <Route path="/reception" element={<ReceptionDashboard />} />
                     <Route path="/reception/register" element={<PatientRegistrationPage />} />
                     <Route path="/reception/search" element={<PatientSearchPage />} />
+                    <Route path="/reception/schedule" element={<SchedulePage />} />
 
                     {/* Doctor Clinical Routes */}
                     <Route path="/doctor" element={<DoctorDashboard />} />

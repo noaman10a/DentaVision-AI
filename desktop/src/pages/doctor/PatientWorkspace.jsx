@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
 import { useAI } from '../../context/AIContext';
 import { XRayViewer } from '../../components/ai/XRayViewer';
@@ -19,22 +20,127 @@ import {
   FolderOpen, 
   History, 
   Pill,
-  Plus
+  Plus,
+  ArrowLeft,
+  Users,
+  Search,
+  ArrowRight
 } from 'lucide-react';
 
 export const PatientWorkspace = () => {
-  const { activePatient } = usePatients();
+  const navigate = useNavigate();
+  const { activePatient, setActivePatient, selectPatientById, patients } = usePatients();
   const { runAIAnalysis, isAnalyzing } = useAI();
   const [activeTab, setActiveTab] = useState('xrays');
 
   if (!activePatient) {
     return (
-      <div className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
-        <User size={40} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
-        <h3 style={{ color: 'var(--text-primary)' }}>No Patient Workspace Selected</h3>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-          Select a patient from search or dashboard to launch workspace.
-        </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Navigation Bar */}
+        <div className="glass-card no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={() => navigate('/doctor')}
+              className="btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Dashboard</span>
+            </button>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
+              Clinical Workspace
+            </h3>
+          </div>
+          <button
+            onClick={() => navigate('/reception/search')}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Search size={16} />
+            <span>Search Patient Directory</span>
+          </button>
+        </div>
+
+        {/* Empty Workspace Guide */}
+        <div
+          className="glass-card"
+          style={{
+            textAlign: 'center',
+            padding: '48px 24px',
+            background: 'var(--bg-dark-card)',
+            border: '1px dashed var(--border-accent)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--primary-teal-glow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--primary-teal)',
+              marginBottom: '8px',
+            }}
+          >
+            <Users size={32} />
+          </div>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>
+            No Patient Selected
+          </h2>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '480px', lineHeight: '1.5' }}>
+            The clinical workstation is in standby mode. Please select a patient from today's consultation queue below or search the clinic records to load X-rays, diagnostic tools, and clinical notes.
+          </p>
+        </div>
+
+        {/* Quick Patient Selector from Consultation Queue */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>
+              Select Patient from Today's Queue
+            </h4>
+            <span className="badge badge-info">{patients.length} Registered Patients</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+            {patients.map(p => (
+              <div
+                key={p.id}
+                className="glass-card glass-card-interactive"
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px',
+                  backgroundColor: 'var(--btn-secondary-bg)',
+                }}
+                onClick={() => selectPatientById(p.id)}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{p.name}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--primary-teal)', fontWeight: '600' }}>({p.id})</span>
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    {p.gender} • Last Visit: {p.lastVisit}
+                  </p>
+                </div>
+                <button
+                  className="btn-primary"
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                >
+                  <span>Open</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -90,8 +196,28 @@ export const PatientWorkspace = () => {
           </div>
         </div>
 
-        {/* AI Trigger button */}
-        <div style={{ display: 'flex', gap: '10px' }}>
+        {/* AI Trigger and Navigation buttons */}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => navigate('/doctor')}
+            className="btn-secondary no-print"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Return to Doctor Dashboard"
+          >
+            <ArrowLeft size={16} />
+            <span>Dashboard</span>
+          </button>
+
+          <button
+            onClick={() => setActivePatient(null)}
+            className="btn-secondary no-print"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            title="Deselect active patient and return to queue"
+          >
+            <Users size={16} />
+            <span>Switch Patient</span>
+          </button>
+
           <button
             onClick={() => runAIAnalysis(activePatient.id)}
             className="btn-primary"

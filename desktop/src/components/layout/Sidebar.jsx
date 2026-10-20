@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Sparkles,
   LayoutDashboard,
-  UserCircle
+  UserCircle,
+  Calendar
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -27,6 +28,7 @@ export const Sidebar = () => {
         return [
           { label: 'Reception Queue', path: '/reception', icon: LayoutDashboard },
           { label: 'Register Patient', path: '/reception/register', icon: UserPlus },
+          { label: 'Schedule Calendar', path: '/reception/schedule', icon: Calendar },
           { label: 'Search Patients', path: '/reception/search', icon: Search },
           { label: 'My Profile', path: '/profile', icon: UserCircle },
         ];

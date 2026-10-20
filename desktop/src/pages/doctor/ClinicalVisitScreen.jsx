@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
-import { Stethoscope, Calendar, Save, CheckCircle2, FileText, History, Mic, MicOff, Volume2, Sparkles } from 'lucide-react';
+import { Stethoscope, Calendar, Save, CheckCircle2, FileText, History, Mic, MicOff, Volume2, Sparkles, ArrowLeft } from 'lucide-react';
 
 export const ClinicalVisitScreen = () => {
+  const navigate = useNavigate();
   const { activePatient, addClinicalVisit } = usePatients();
   const [visitData, setVisitData] = useState({
     chiefComplaint: 'Sharp pain in lower right molar during chewing',
@@ -122,15 +124,24 @@ export const ClinicalVisitScreen = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header Bar */}
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            type="button"
+            onClick={() => navigate('/workspace')}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
           <Stethoscope size={24} color="var(--primary-teal)" />
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Clinical Visit Consultation Entry
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Patient: <strong>{activePatient?.name} ({activePatient?.id})</strong> • Voice-to-Text Enabled (MDS Sec. 15)
+              Patient: <strong>{activePatient?.name || 'Unassigned'} ({activePatient?.id || 'PT-2026-0705'})</strong> • Voice-to-Text Enabled (MDS Sec. 15)
             </p>
           </div>
         </div>

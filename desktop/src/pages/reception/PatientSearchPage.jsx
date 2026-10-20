@@ -28,6 +28,15 @@ export const PatientSearchPage = () => {
             }
           </p>
         </div>
+
+        <button
+          onClick={() => navigate(isReception ? '/reception' : user?.role === 'admin' ? '/admin' : '/doctor')}
+          className="btn-secondary"
+          style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} />
+          <span>Back to {isReception ? 'Queue' : 'Dashboard'}</span>
+        </button>
       </div>
 
       {/* Search Input Box */}

@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
-import { Pill, Mic, MicOff, Plus, Trash2, Printer, CheckCircle2, Volume2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { 
+  Pill, 
+  Mic, 
+  MicOff, 
+  Plus, 
+  Trash2, 
+  Printer, 
+  CheckCircle2, 
+  Volume2, 
+  ArrowLeft,
+  Save,
+  FileCheck,
+  AlertTriangle
+} from 'lucide-react';
 
 const commonMedicines = [
   'Amoxicillin',
@@ -14,10 +29,13 @@ const commonMedicines = [
 ];
 
 export const PrescriptionModule = () => {
+  const navigate = useNavigate();
   const { activePatient } = usePatients();
+  const { user } = useAuth();
+
   const [prescriptions, setPrescriptions] = useState([
-    { id: 1, medicine: 'Amoxicillin', strength: '500mg', dose: '1 Capsule', frequency: 'TDS (3x/day)', timing: 'After Food', duration: '5 Days' },
-    { id: 2, medicine: 'Ibuprofen', strength: '400mg', dose: '1 Tablet', frequency: 'BD (2x/day)', timing: 'After Food', duration: '3 Days' }
+    { id: 1, medicine: 'Amoxicillin', strength: '500mg', dose: '1 Capsule', frequency: 'TDS (3x/day)', timing: 'After Food', duration: '5 Days', instructions: 'Complete full course to prevent bacterial resistance.' },
+    { id: 2, medicine: 'Ibuprofen', strength: '400mg', dose: '1 Tablet', frequency: 'BD (2x/day)', timing: 'After Food', duration: '3 Days', instructions: 'Take strictly after meals for inflammatory pain relief.' }
   ]);
 
   const [currentMed, setCurrentMed] = useState({
@@ -26,15 +44,19 @@ export const PrescriptionModule = () => {
     dose: '1 Capsule',
     frequency: 'TDS (3x/day)',
     timing: 'After Food',
-    duration: '5 Days'
+    duration: '5 Days',
+    instructions: 'Take after meals.'
   });
 
   const [isRecording, setIsRecording] = useState(false);
-  const [voiceNote, setVoiceNote] = useState('Take medications strictly after meals. Rinse with Chlorhexidine twice daily.');
+  const [voiceNote, setVoiceNote] = useState('Take medications strictly after meals. Rinse mouth gently with warm saline solution. Avoid chewing on the right side for 48 hours.');
+  const [feedbackMsg, setFeedbackMsg] = useState('');
 
   const addMedication = () => {
     if (!currentMed.medicine) return;
     setPrescriptions(prev => [...prev, { ...currentMed, id: Date.now() }]);
+    setFeedbackMsg(`Added ${currentMed.medicine} to current prescription.`);
+    setTimeout(() => setFeedbackMsg(''), 2500);
   };
 
   const removeMedication = (id) => {
@@ -48,42 +70,284 @@ export const PrescriptionModule = () => {
       setIsRecording(true);
       setTimeout(() => {
         setIsRecording(false);
-        setVoiceNote('Take Amoxicillin 500mg three times daily for 5 days. Use Ibuprofen for severe pain.');
-      }, 3000);
+        setVoiceNote('Take Amoxicillin 500mg three times daily for 5 days. Use Ibuprofen for severe pain. Maintain soft diet.');
+      }, 2500);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const exportOfficialPrescriptionPdf = () => {
+    const doctorName = user?.name || 'Dr. Twahir Mohammed';
+    const patientName = activePatient?.name || 'Amina Rahmani';
+    const patientId = activePatient?.id || 'PT-2026-0705';
+    const patientDob = activePatient?.dob || '1992-04-14';
+    const patientGender = activePatient?.gender || 'Female';
+    const patientPhone = activePatient?.phone || '+91 98765 43210';
+    const dateFormatted = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const medicalAllergies = activePatient?.medicalHistory?.join(', ') || 'No known allergies reported';
+
+    const medsRows = prescriptions.map((p, idx) => `
+      <tr>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600; text-align: center;">${idx + 1}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0;">
+          <strong style="color: #0f172a; font-size: 14px;">${p.medicine}</strong>
+          <span style="color: #0d9488; font-weight: 600; margin-left: 6px;">(${p.strength})</span>
+          ${p.instructions ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">${p.instructions}</div>` : ''}
+        </td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0;">${p.dose}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f766e;">${p.frequency}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0;">${p.timing}</td>
+        <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${p.duration}</td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Prescription_${patientName.replace(/\s+/g, '_')}_${patientId}</title>
+        <style>
+          @page { size: A4; margin: 18mm 16mm; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+          }
+          .clinic-header {
+            width: 100%;
+            border-bottom: 2px solid #0d9488;
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+          }
+          .clinic-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f766e;
+            letter-spacing: -0.5px;
+          }
+          .clinic-sub {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+          }
+          .doctor-block {
+            text-align: right;
+          }
+          .doctor-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+          }
+          .doctor-meta {
+            font-size: 11px;
+            color: #64748b;
+          }
+          .patient-box {
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            box-sizing: border-box;
+          }
+          .patient-table {
+            width: 100%;
+            font-size: 13px;
+          }
+          .patient-table td {
+            padding: 4px 6px;
+          }
+          .p-label { color: #64748b; font-weight: 500; }
+          .p-val { font-weight: 600; color: #0f172a; }
+          .rx-symbol {
+            font-size: 32px;
+            font-family: "Times New Roman", serif;
+            font-weight: bold;
+            color: #0f766e;
+            margin-bottom: 8px;
+          }
+          .meds-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 20px;
+          }
+          .meds-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid #cbd5e1;
+          }
+          .advice-box {
+            background: #f8fafc;
+            border-left: 3px solid #0d9488;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #1e293b;
+            margin-bottom: 24px;
+          }
+          .footer-table {
+            width: 100%;
+            margin-top: 36px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+          }
+          .signature-line {
+            border-bottom: 1px dashed #94a3b8;
+            margin-bottom: 6px;
+            height: 40px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            font-family: cursive;
+            font-size: 18px;
+            color: #0f766e;
+          }
+        </style>
+      </head>
+      <body>
+        <table class="clinic-header">
+          <tr>
+            <td>
+              <div class="clinic-name">DENTAVISION AI DENTAL CENTER</div>
+              <div class="clinic-sub">Department of Comprehensive Dental Care & Oral Surgery • Unit 4, MG Road, Bengaluru</div>
+              <div class="clinic-sub">Phone: +91 80 2345 6789 • Email: clinical@dentavision.ai</div>
+            </td>
+            <td class="doctor-block">
+              <div class="doctor-title">${doctorName}, B.D.S., M.D.S.</div>
+              <div class="doctor-meta">Oral Medicine & Radiology Specialist</div>
+              <div class="doctor-meta">DCI Reg No: DCI-KA-2021-08491</div>
+              <div style="font-size: 12px; color: #0d9488; font-weight: 600; margin-top: 4px;">Date: ${dateFormatted}</div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="patient-box">
+          <table class="patient-table">
+            <tr>
+              <td class="p-label" style="width: 15%;">Patient Name:</td>
+              <td class="p-val" style="width: 35%;">${patientName}</td>
+              <td class="p-label" style="width: 15%;">Patient ID:</td>
+              <td class="p-val" style="width: 35%;">${patientId}</td>
+            </tr>
+            <tr>
+              <td class="p-label">DOB / Gender:</td>
+              <td class="p-val">${patientDob} (${patientGender})</td>
+              <td class="p-label">Contact:</td>
+              <td class="p-val">${patientPhone}</td>
+            </tr>
+            <tr>
+              <td class="p-label">Medical Alerts:</td>
+              <td class="p-val" colspan="3" style="color: #b45309;">${medicalAllergies}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="rx-symbol">℞</div>
+
+        <table class="meds-table">
+          <thead>
+            <tr>
+              <th style="width: 5%; text-align: center;">#</th>
+              <th style="width: 40%;">Medicine & Strength</th>
+              <th style="width: 12%;">Dosage</th>
+              <th style="width: 15%;">Frequency</th>
+              <th style="width: 15%;">Timing</th>
+              <th style="width: 13%;">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${medsRows}
+          </tbody>
+        </table>
+
+        <div style="font-size: 13px; font-weight: 700; color: #0f766e; margin-bottom: 6px; text-transform: uppercase;">
+          Special Advice & Dietary Instructions
+        </div>
+        <div class="advice-box">${voiceNote}</div>
+
+        <table class="footer-table">
+          <tr>
+            <td style="width: 60%; vertical-align: top; font-size: 11px; color: #64748b; line-height: 1.4;">
+              <strong>Prescription Safety Notice:</strong> Follow prescribed dosage strictly. In case of unexpected allergic reaction (rash, swelling, respiratory difficulty), discontinue immediately and contact emergency helpline.
+              <br /><br />
+              <strong>Valid through:</strong> 14 days from date of issue • DentaVision Digital Rx ID #RX-${Math.floor(1000 + Math.random() * 9000)}
+            </td>
+            <td style="width: 40%; vertical-align: bottom; text-align: right;">
+              <div style="display: inline-block; min-width: 190px;">
+                <div class="signature-line">${doctorName}</div>
+                <div style="font-size: 13px; font-weight: 700; color: #0f172a;">${doctorName}</div>
+                <div style="font-size: 11px; color: #64748b;">Attending Dental Surgeon</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const printWin = window.open('', '_blank', 'width=900,height=1000');
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(htmlContent);
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(() => {
+        printWin.print();
+      }, 350);
+    } else {
+      window.print();
+    }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-card no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Pill size={24} color="var(--primary-teal)" />
+          <button
+            onClick={() => navigate('/workspace')}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Workspace</span>
+          </button>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>
               Rx Prescription Builder
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Patient: <strong>{activePatient?.name} ({activePatient?.id})</strong>
+              Patient: <strong>{activePatient?.name || 'Amina Rahmani'} ({activePatient?.id || 'PT-2026-0705'})</strong>
             </p>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={handlePrint} className="btn-secondary">
+          <button onClick={exportOfficialPrescriptionPdf} className="btn-primary">
             <Printer size={18} />
-            <span>Print Prescription</span>
+            <span>Print / Export Clean Rx</span>
           </button>
         </div>
       </div>
 
+      {feedbackMsg && (
+        <div className="badge badge-success fade-in no-print" style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', fontSize: '13px' }}>
+          <CheckCircle2 size={16} />
+          <span>{feedbackMsg}</span>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Medication Builder Form */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="glass-card no-print" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>Add Medication Entry</h4>
 
           <div>
@@ -177,11 +441,15 @@ export const PrescriptionModule = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Prescription List Card */}
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>Current Prescription List</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-primary)' }}>Current Prescription List</h4>
+              <span className="badge badge-info">{prescriptions.length} Meds</span>
+            </div>
+
             {prescriptions.length === 0 ? (
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No medications added yet.</p>
             ) : (
-              prescriptions.map((p) => (
+              prescriptions.map((p, idx) => (
                 <div
                   key={p.id}
                   style={{
@@ -196,7 +464,7 @@ export const PrescriptionModule = () => {
                 >
                   <div>
                     <h5 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                      {p.medicine} <span style={{ color: 'var(--primary-teal)' }}>({p.strength})</span>
+                      {idx + 1}. {p.medicine} <span style={{ color: 'var(--primary-teal)' }}>({p.strength})</span>
                     </h5>
                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       Dose: {p.dose} • {p.frequency} • {p.timing} • {p.duration}
@@ -205,7 +473,9 @@ export const PrescriptionModule = () => {
 
                   <button
                     onClick={() => removeMedication(p.id)}
-                    style={{ background: 'none', border: 'none', color: 'var(--status-error)', cursor: 'pointer' }}
+                    className="no-print"
+                    style={{ background: 'none', border: 'none', color: 'var(--status-error)', cursor: 'pointer', padding: '4px' }}
+                    title="Remove medicine"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -219,11 +489,11 @@ export const PrescriptionModule = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Volume2 size={16} color="var(--primary-teal)" />
-                <span>Voice Instructions (Dictation)</span>
+                <span>Doctor Advice & Voice Dictation</span>
               </h4>
               <button
                 onClick={toggleVoiceRecording}
-                className={`btn-${isRecording ? 'danger' : 'secondary'}`}
+                className={`btn-${isRecording ? 'danger' : 'secondary'} no-print`}
                 style={{ padding: '6px 12px', fontSize: '12px' }}
               >
                 {isRecording ? <MicOff size={14} /> : <Mic size={14} />}

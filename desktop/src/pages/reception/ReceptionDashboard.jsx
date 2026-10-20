@@ -76,11 +76,11 @@ export const ReceptionDashboard = () => {
           </button>
 
           <button
-            onClick={() => alert('Appointment Scheduling calendar loaded.')}
+            onClick={() => navigate('/reception/schedule')}
             className="btn-secondary"
           >
             <Calendar size={18} />
-            <span>Schedule</span>
+            <span>Schedule Calendar</span>
           </button>
         </div>
       </div>

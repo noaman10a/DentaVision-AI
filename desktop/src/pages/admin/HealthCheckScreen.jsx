@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Activity, 
   CheckCircle2, 
@@ -10,10 +11,12 @@ import {
   Sparkles, 
   HardDrive, 
   RefreshCcw,
-  Zap
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 
 export const HealthCheckScreen = () => {
+  const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastCheck, setLastCheck] = useState(new Date().toLocaleTimeString());
   const [liveMetrics, setLiveMetrics] = useState({
@@ -152,8 +155,16 @@ export const HealthCheckScreen = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header Bar */}
-      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => navigate('/admin')}
+            className="btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Dashboard</span>
+          </button>
           <Activity size={24} color="var(--primary-teal)" />
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)' }}>

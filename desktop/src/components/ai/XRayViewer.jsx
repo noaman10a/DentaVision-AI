@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../context/AIContext';
+import { TeethChart } from '../clinical/TeethChart';
 import { 
   ZoomIn, 
   ZoomOut, 
@@ -15,6 +16,57 @@ import {
   Hand,
   Ruler
 } from 'lucide-react';
+
+// FDI Two-Digit Adult Teeth Options (11-48)
+const FDI_TEETH_OPTIONS = [
+  // Upper Right (Q1)
+  { num: '18', label: 'Tooth #18 - Upper Right 3rd Molar (Wisdom)' },
+  { num: '17', label: 'Tooth #17 - Upper Right 2nd Molar' },
+  { num: '16', label: 'Tooth #16 - Upper Right 1st Molar' },
+  { num: '15', label: 'Tooth #15 - Upper Right 2nd Premolar' },
+  { num: '14', label: 'Tooth #14 - Upper Right 1st Premolar' },
+  { num: '13', label: 'Tooth #13 - Upper Right Canine' },
+  { num: '12', label: 'Tooth #12 - Upper Right Lateral Incisor' },
+  { num: '11', label: 'Tooth #11 - Upper Right Central Incisor' },
+  // Upper Left (Q2)
+  { num: '21', label: 'Tooth #21 - Upper Left Central Incisor' },
+  { num: '22', label: 'Tooth #22 - Upper Left Lateral Incisor' },
+  { num: '23', label: 'Tooth #23 - Upper Left Canine' },
+  { num: '24', label: 'Tooth #24 - Upper Left 1st Premolar' },
+  { num: '25', label: 'Tooth #25 - Upper Left 2nd Premolar' },
+  { num: '26', label: 'Tooth #26 - Upper Left 1st Molar' },
+  { num: '27', label: 'Tooth #27 - Upper Left 2nd Molar' },
+  { num: '28', label: 'Tooth #28 - Upper Left 3rd Molar (Wisdom)' },
+  // Lower Left (Q3)
+  { num: '31', label: 'Tooth #31 - Lower Left Central Incisor' },
+  { num: '32', label: 'Tooth #32 - Lower Left Lateral Incisor' },
+  { num: '33', label: 'Tooth #33 - Lower Left Canine' },
+  { num: '34', label: 'Tooth #34 - Lower Left 1st Premolar' },
+  { num: '35', label: 'Tooth #35 - Lower Left 2nd Premolar' },
+  { num: '36', label: 'Tooth #36 - Lower Left 1st Molar' },
+  { num: '37', label: 'Tooth #37 - Lower Left 2nd Molar' },
+  { num: '38', label: 'Tooth #38 - Lower Left 3rd Molar (Wisdom)' },
+  // Lower Right (Q4)
+  { num: '41', label: 'Tooth #41 - Lower Right Central Incisor' },
+  { num: '42', label: 'Tooth #42 - Lower Right Lateral Incisor' },
+  { num: '43', label: 'Tooth #43 - Lower Right Canine' },
+  { num: '44', label: 'Tooth #44 - Lower Right 1st Premolar' },
+  { num: '45', label: 'Tooth #45 - Lower Right 2nd Premolar' },
+  { num: '46', label: 'Tooth #46 - Lower Right 1st Molar' },
+  { num: '47', label: 'Tooth #47 - Lower Right 2nd Molar' },
+  { num: '48', label: 'Tooth #48 - Lower Right 3rd Molar (Wisdom)' }
+];
+
+const PATHOLOGY_OPTIONS = [
+  'Caries',
+  'Periapical Lesion',
+  'Enamel Demineralization',
+  'Alveolar Bone Loss',
+  'Impacted Tooth',
+  'Restoration / Crown',
+  'Root Canal Treatment',
+  'Sound / Normal'
+];
 
 export const XRayViewer = () => {
   const { 
@@ -42,6 +94,16 @@ export const XRayViewer = () => {
   const [isInverted, setIsInverted] = useState(false);
   const [preset, setPreset] = useState('STD'); // 'STD', 'BONE', 'ENAM', 'NEG'
   const [showOverlays, setShowOverlays] = useState(true);
+
+  // Doctor Finding Modification Modal State
+  const [isModifying, setIsModifying] = useState(false);
+  const [modifyForm, setModifyForm] = useState({
+    tooth_number: '16',
+    finding_type: 'Caries',
+    severity: 'Moderate',
+    confidence: 90,
+    notes: ''
+  });
 
   // Dental Caliper Scale Measurement
   const [measurePoints, setMeasurePoints] = useState([]);
@@ -177,6 +239,33 @@ export const XRayViewer = () => {
     if (lower.includes('root') || lower.includes('fragment')) return '#fb923c';
     if (lower.includes('prosthet') || lower.includes('crown') || lower.includes('implant')) return '#38bdf8';
     return 'var(--primary-teal)';
+  };
+
+  const handleOpenModify = (finding) => {
+    const target = finding || activeFinding;
+    if (!target) return;
+    const cleanTooth = String(target.tooth_number || '').replace(/^(Tooth\s*#?)/i, '').trim();
+    setModifyForm({
+      tooth_number: cleanTooth || '16',
+      finding_type: target.finding_type || 'Caries',
+      severity: target.severity || 'Moderate',
+      confidence: typeof target.confidence === 'number' ? Math.round(target.confidence * 100) : 90,
+      notes: target.notes || ''
+    });
+    setIsModifying(true);
+  };
+
+  const handleSaveModify = () => {
+    if (!activeFinding) return;
+    const parsedConf = Math.max(0.05, Math.min(1.0, (parseFloat(modifyForm.confidence) || 90) / 100));
+    modifyFinding(activeFinding.id, {
+      tooth_number: String(modifyForm.tooth_number).trim(),
+      finding_type: modifyForm.finding_type,
+      severity: modifyForm.severity,
+      confidence: parsedConf,
+      notes: modifyForm.notes
+    });
+    setIsModifying(false);
   };
 
   return (
@@ -618,23 +707,22 @@ export const XRayViewer = () => {
               </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
                 onClick={() => confirmFinding(activeFinding.id)}
                 className="btn-primary"
-                style={{ backgroundColor: 'var(--status-success)', padding: '8px 14px', fontSize: '13px' }}
+                style={{ backgroundColor: 'var(--status-success)', padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="Accept and confirm this finding"
               >
                 <Check size={16} />
-                <span>Confirm Finding</span>
+                <span>Accept</span>
               </button>
 
               <button
-                onClick={() => {
-                  const newTooth = prompt('Enter modified Tooth Number (e.g. 31):', cleanActiveTooth);
-                  if (newTooth) modifyFinding(activeFinding.id, { tooth_number: newTooth.replace(/^Tooth\s*#?\s*/i, '') });
-                }}
+                onClick={() => handleOpenModify(activeFinding)}
                 className="btn-secondary"
-                style={{ padding: '8px 14px', fontSize: '13px' }}
+                style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="Modify tooth, pathology classification, severity or notes"
               >
                 <Edit3 size={16} />
                 <span>Modify</span>
@@ -643,15 +731,237 @@ export const XRayViewer = () => {
               <button
                 onClick={() => rejectFinding(activeFinding.id)}
                 className="btn-secondary btn-danger"
-                style={{ padding: '8px 14px', fontSize: '13px' }}
+                style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                title="Decline / Reject this finding"
               >
                 <X size={16} />
-                <span>Reject</span>
+                <span>Decline</span>
               </button>
             </div>
           </div>
         );
       })()}
+
+      {/* Clinical Finding Modification Modal */}
+      {isModifying && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(2, 6, 23, 0.78)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModifying(false);
+          }}
+        >
+          <div
+            className="glass-card"
+            style={{
+              width: '100%',
+              maxWidth: '540px',
+              backgroundColor: 'var(--bg-dark-card, #081026)',
+              border: '1px solid var(--border-accent, rgba(0, 210, 255, 0.4))',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: '0 20px 48px rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+            }}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(0, 210, 255, 0.15)',
+                    border: '1px solid rgba(0, 210, 255, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--primary-teal)',
+                  }}
+                >
+                  <Edit3 size={18} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                    Modify Clinical Finding
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>
+                    Doctor Attestation • Correct tooth, pathology class, severity or clinical notes
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsModifying(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form Fields */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Tooth Number Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  Tooth Location (FDI Two-Digit System)
+                </label>
+                <select
+                  value={modifyForm.tooth_number}
+                  onChange={(e) => setModifyForm({ ...modifyForm, tooth_number: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    fontSize: '13px',
+                  }}
+                >
+                  {FDI_TEETH_OPTIONS.map((t) => (
+                    <option key={t.num} value={t.num} style={{ backgroundColor: '#081026', color: '#fff' }}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Pathology Classification */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  Pathological Finding Classification
+                </label>
+                <select
+                  value={modifyForm.finding_type}
+                  onChange={(e) => setModifyForm({ ...modifyForm, finding_type: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    fontSize: '13px',
+                  }}
+                >
+                  {PATHOLOGY_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat} style={{ backgroundColor: '#081026', color: '#fff' }}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Severity and Confidence Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                    Severity / Clinical Quality
+                  </label>
+                  <select
+                    value={modifyForm.severity}
+                    onChange={(e) => setModifyForm({ ...modifyForm, severity: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                      border: '1px solid var(--border-glass)',
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
+                      fontSize: '13px',
+                    }}
+                  >
+                    <option value="Mild" style={{ backgroundColor: '#081026', color: '#fff' }}>Mild (Incipient)</option>
+                    <option value="Moderate" style={{ backgroundColor: '#081026', color: '#fff' }}>Moderate (Dentin)</option>
+                    <option value="Severe" style={{ backgroundColor: '#081026', color: '#fff' }}>Severe (Deep / Pulp)</option>
+                    <option value="Stable" style={{ backgroundColor: '#081026', color: '#fff' }}>Stable / Monitored</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                      Diagnostic Confidence
+                    </label>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--primary-teal)' }}>
+                      {modifyForm.confidence}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={modifyForm.confidence}
+                    onChange={(e) => setModifyForm({ ...modifyForm, confidence: e.target.value })}
+                    style={{ width: '100%', marginTop: '8px', accentColor: 'var(--primary-teal)' }}
+                  />
+                </div>
+              </div>
+
+              {/* Clinical Notes & Observations */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  Doctor Attestation Observations & Notes
+                </label>
+                <textarea
+                  rows={3}
+                  value={modifyForm.notes}
+                  onChange={(e) => setModifyForm({ ...modifyForm, notes: e.target.value })}
+                  placeholder="Record lesion depth, cavitated surfaces, pulp involvement, or differential diagnoses..."
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    fontSize: '13px',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
+              <button
+                onClick={() => setIsModifying(false)}
+                className="btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '13px' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveModify}
+                className="btn-primary"
+                style={{ padding: '8px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Check size={16} />
+                <span>Save Finding</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive 32-Tooth Heat Chart / Odontogram directly below the X-Ray & Findings */}
+      <div style={{ marginTop: '10px' }}>
+        <TeethChart />
+      </div>
     </div>
   );
 };

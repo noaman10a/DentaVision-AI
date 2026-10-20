@@ -1,94 +1,180 @@
-import React, { useState } from 'react';
-import { Sparkles, AlertCircle, CheckCircle, ShieldAlert, ArrowRight, X, Info } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Sparkles, AlertCircle, CheckCircle, ShieldAlert, ArrowUpRight, X, Info, Activity } from 'lucide-react';
+import { useAI } from '../../context/AIContext';
+
+// Anatomic 32-Tooth Adult Dentition Map (FDI Two-Digit Notation)
+const ANATOMIC_TOOTH_NAMES = {
+  '18': 'Upper Right Third Molar (Wisdom)',
+  '17': 'Upper Right Second Molar',
+  '16': 'Upper Right First Molar',
+  '15': 'Upper Right Second Premolar',
+  '14': 'Upper Right First Premolar',
+  '13': 'Upper Right Canine',
+  '12': 'Upper Right Lateral Incisor',
+  '11': 'Upper Right Central Incisor',
+  '21': 'Upper Left Central Incisor',
+  '22': 'Upper Left Lateral Incisor',
+  '23': 'Upper Left Canine',
+  '24': 'Upper Left First Premolar',
+  '25': 'Upper Left Second Premolar',
+  '26': 'Upper Left First Molar',
+  '27': 'Upper Left Second Molar',
+  '28': 'Upper Left Third Molar (Wisdom)',
+  '48': 'Lower Right Third Molar (Wisdom)',
+  '47': 'Lower Right Second Molar',
+  '46': 'Lower Right First Molar',
+  '45': 'Lower Right Second Premolar',
+  '44': 'Lower Right First Premolar',
+  '43': 'Lower Right Canine',
+  '42': 'Lower Right Lateral Incisor',
+  '41': 'Lower Right Central Incisor',
+  '31': 'Lower Left Central Incisor',
+  '32': 'Lower Left Lateral Incisor',
+  '33': 'Lower Left Canine',
+  '34': 'Lower Left First Premolar',
+  '35': 'Lower Left Second Premolar',
+  '36': 'Lower Left First Molar',
+  '37': 'Lower Left Second Molar',
+  '38': 'Lower Left Third Molar (Wisdom)'
+};
+
+const upperRight = ['18', '17', '16', '15', '14', '13', '12', '11'];
+const upperLeft  = ['21', '22', '23', '24', '25', '26', '27', '28'];
+const lowerRight = ['48', '47', '46', '45', '44', '43', '42', '41'];
+const lowerLeft  = ['31', '32', '33', '34', '35', '36', '37', '38'];
+
+export const normalizeFindingType = (type) => {
+  if (!type) return 'Sound';
+  const lower = String(type).toLowerCase();
+  if (lower.includes('carie') || lower.includes('cavity')) return 'Caries';
+  if (lower.includes('periapical') || lower.includes('abscess') || lower.includes('radiolucency')) return 'Periapical';
+  if (lower.includes('demineral') || lower.includes('enamel')) return 'Demineralization';
+  if (lower.includes('restoration') || lower.includes('crown') || lower.includes('amalgam') || lower.includes('filling') || lower.includes('composite') || lower.includes('obturat')) return 'Restoration';
+  if (lower.includes('impact') || lower.includes('impaction')) return 'Impacted';
+  if (lower.includes('bone') || lower.includes('resorb') || lower.includes('periodont')) return 'Bone Loss';
+  return type;
+};
+
+export const getStatusColor = (status) => {
+  switch (status) {
+    case 'Caries':
+      return '#ef4444'; // Red
+    case 'Demineralization':
+      return '#f59e0b'; // Amber
+    case 'Periapical':
+      return '#a855f7'; // Purple
+    case 'Restoration':
+      return '#00d2ff'; // Cyan
+    case 'Impacted':
+      return '#3b82f6'; // Blue
+    case 'Bone Loss':
+      return '#f97316'; // Orange
+    case 'Sound':
+    default:
+      return 'rgba(255, 255, 255, 0.25)'; // Healthy / Sound
+  }
+};
+
+const getStatusBg = (status, isSelected) => {
+  if (isSelected) return 'rgba(0, 210, 255, 0.28)';
+  switch (status) {
+    case 'Caries':
+      return 'rgba(239, 68, 68, 0.16)';
+    case 'Demineralization':
+      return 'rgba(245, 158, 11, 0.16)';
+    case 'Periapical':
+      return 'rgba(168, 85, 247, 0.16)';
+    case 'Restoration':
+      return 'rgba(0, 210, 255, 0.14)';
+    case 'Impacted':
+      return 'rgba(59, 130, 246, 0.16)';
+    case 'Bone Loss':
+      return 'rgba(249, 115, 22, 0.16)';
+    default:
+      return 'rgba(15, 23, 42, 0.65)';
+  }
+};
 
 export const TeethChart = ({ selectedPatient = null }) => {
-  const navigate = useNavigate();
+  const { analysisResult, activeFindingId, setActiveFindingId } = useAI();
   const [selectedTooth, setSelectedTooth] = useState(null);
   const [filterArch, setFilterArch] = useState('ALL'); // 'ALL', 'UPPER', 'LOWER'
 
-  // Anatomic 32-Tooth Adult Dentition Map (FDI Two-Digit Notation)
-  // Upper Right (Q1): 18 down to 11
-  // Upper Left  (Q2): 21 up to 28
-  // Lower Right (Q4): 48 down to 41
-  // Lower Left  (Q3): 31 up to 38
-  const defaultToothFindings = {
-    '18': { status: 'Sound', name: 'Upper Right Third Molar (Wisdom)' },
-    '17': { status: 'Sound', name: 'Upper Right Second Molar' },
-    '16': { status: 'Caries', name: 'Upper Right First Molar', finding: 'Deep Occlusal Caries (D3 Lesion)', confidence: '94%', severity: 'High' },
-    '15': { status: 'Sound', name: 'Upper Right Second Premolar' },
-    '14': { status: 'Restoration', name: 'Upper Right First Premolar', finding: 'Composite Restoration (MOD)', confidence: '91%', severity: 'Stable' },
-    '13': { status: 'Sound', name: 'Upper Right Canine' },
-    '12': { status: 'Sound', name: 'Upper Right Lateral Incisor' },
-    '11': { status: 'Sound', name: 'Upper Right Central Incisor' },
-    '21': { status: 'Sound', name: 'Upper Left Central Incisor' },
-    '22': { status: 'Sound', name: 'Upper Left Lateral Incisor' },
-    '23': { status: 'Sound', name: 'Upper Left Canine' },
-    '24': { status: 'Demineralization', name: 'Upper Left First Premolar', finding: 'Early Enamel Demineralization (E2)', confidence: '87%', severity: 'Watch' },
-    '25': { status: 'Sound', name: 'Upper Left Second Premolar' },
-    '26': { status: 'Periapical', name: 'Upper Left First Molar', finding: 'Periapical Radiolucency (Apical Periodontitis)', confidence: '89%', severity: 'Moderate' },
-    '27': { status: 'Sound', name: 'Upper Left Second Molar' },
-    '28': { status: 'Sound', name: 'Upper Left Third Molar (Wisdom)' },
-    '48': { status: 'Impacted', name: 'Lower Right Third Molar', finding: 'Mesioangular Impaction against #47', confidence: '96%', severity: 'Moderate' },
-    '47': { status: 'Sound', name: 'Lower Right Second Molar' },
-    '46': { status: 'Restoration', name: 'Lower Right First Molar', finding: 'Amalgam Crown / Core', confidence: '93%', severity: 'Stable' },
-    '45': { status: 'Sound', name: 'Lower Right Second Premolar' },
-    '44': { status: 'Sound', name: 'Lower Right First Premolar' },
-    '43': { status: 'Sound', name: 'Lower Right Canine' },
-    '42': { status: 'Sound', name: 'Lower Right Lateral Incisor' },
-    '41': { status: 'Sound', name: 'Lower Right Central Incisor' },
-    '31': { status: 'Sound', name: 'Lower Left Central Incisor' },
-    '32': { status: 'Sound', name: 'Lower Left Lateral Incisor' },
-    '33': { status: 'Sound', name: 'Lower Left Canine' },
-    '34': { status: 'Sound', name: 'Lower Left First Premolar' },
-    '35': { status: 'Sound', name: 'Lower Left Second Premolar' },
-    '36': { status: 'Caries', name: 'Lower Left First Molar', finding: 'Interproximal Cavitation (Distal)', confidence: '92%', severity: 'High' },
-    '37': { status: 'Sound', name: 'Lower Left Second Molar' },
-    '38': { status: 'Sound', name: 'Lower Left Third Molar (Wisdom)' }
-  };
+  // Derive findings dynamically from AI analysis result
+  const toothFindings = useMemo(() => {
+    const map = {};
+    // Initialize all 32 teeth as Sound
+    Object.keys(ANATOMIC_TOOTH_NAMES).forEach(tooth => {
+      map[tooth] = {
+        tooth_number: tooth,
+        name: ANATOMIC_TOOTH_NAMES[tooth],
+        status: 'Sound',
+        findingType: 'Sound',
+        findingsList: []
+      };
+    });
 
-  const upperRight = ['18', '17', '16', '15', '14', '13', '12', '11'];
-  const upperLeft  = ['21', '22', '23', '24', '25', '26', '27', '28'];
-  const lowerRight = ['48', '47', '46', '45', '44', '43', '42', '41'];
-  const lowerLeft  = ['31', '32', '33', '34', '35', '36', '37', '38'];
+    const findings = analysisResult?.findings || [];
+    findings.forEach(f => {
+      if (f.status === 'Rejected') return; // Ignore rejected/declined findings
+      const cleanNum = String(f.tooth_number || '').replace(/^(Tooth\s*#?)/i, '').trim();
+      if (map[cleanNum]) {
+        const normalizedStatus = normalizeFindingType(f.finding_type);
+        map[cleanNum].status = normalizedStatus;
+        map[cleanNum].findingType = f.finding_type;
+        map[cleanNum].finding = f.notes || `${f.finding_type} identified`;
+        map[cleanNum].confidence = typeof f.confidence === 'number' ? `${(f.confidence * 100).toFixed(0)}%` : f.confidence;
+        map[cleanNum].severity = f.severity || (f.confidence > 0.85 ? 'High' : 'Moderate');
+        map[cleanNum].reviewStatus = f.status || 'Pending Review';
+        map[cleanNum].findingId = f.id;
+        map[cleanNum].findingsList.push(f);
+      }
+    });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Caries':
-        return '#ef4444'; // Red
-      case 'Demineralization':
-        return '#f59e0b'; // Amber
-      case 'Periapical':
-        return '#a855f7'; // Purple
-      case 'Restoration':
-        return '#00d2ff'; // Cyan
-      case 'Impacted':
-        return '#3b82f6'; // Blue
-      default:
-        return 'rgba(255, 255, 255, 0.2)'; // Healthy / Sound
+    return map;
+  }, [analysisResult?.findings]);
+
+  // Synchronize selection with activeFindingId in AIContext
+  useEffect(() => {
+    if (activeFindingId && analysisResult?.findings) {
+      const activeF = analysisResult.findings.find(f => f.id === activeFindingId);
+      if (activeF && activeF.tooth_number) {
+        const cleanNum = String(activeF.tooth_number).replace(/^(Tooth\s*#?)/i, '').trim();
+        setSelectedTooth(cleanNum);
+      }
     }
-  };
+  }, [activeFindingId, analysisResult?.findings]);
 
-  const getStatusBg = (status, isSelected) => {
-    if (isSelected) return 'rgba(0, 210, 255, 0.25)';
-    switch (status) {
-      case 'Caries':
-        return 'rgba(239, 68, 68, 0.15)';
-      case 'Demineralization':
-        return 'rgba(245, 158, 11, 0.15)';
-      case 'Periapical':
-        return 'rgba(168, 85, 247, 0.15)';
-      case 'Restoration':
-        return 'rgba(0, 210, 255, 0.12)';
-      case 'Impacted':
-        return 'rgba(59, 130, 246, 0.15)';
-      default:
-        return 'rgba(15, 23, 42, 0.6)';
+  // Legend summary counts
+  const counts = useMemo(() => {
+    let sound = 0, caries = 0, demineralization = 0, periapical = 0, restoration = 0, impacted = 0, boneLoss = 0;
+    Object.values(toothFindings).forEach(t => {
+      switch (t.status) {
+        case 'Sound': sound++; break;
+        case 'Caries': caries++; break;
+        case 'Demineralization': demineralization++; break;
+        case 'Periapical': periapical++; break;
+        case 'Restoration': restoration++; break;
+        case 'Impacted': impacted++; break;
+        case 'Bone Loss': boneLoss++; break;
+        default: sound++; break;
+      }
+    });
+    return { sound, caries, demineralization, periapical, restoration, impacted, boneLoss };
+  }, [toothFindings]);
+
+  const handleToothClick = (num) => {
+    const isCurrentlySelected = selectedTooth === num;
+    const newSelected = isCurrentlySelected ? null : num;
+    setSelectedTooth(newSelected);
+
+    if (newSelected && toothFindings[newSelected]?.findingId) {
+      setActiveFindingId(toothFindings[newSelected].findingId);
     }
   };
 
   const renderTooth = (num) => {
-    const data = defaultToothFindings[num] || { status: 'Sound', name: `Tooth #${num}` };
+    const data = toothFindings[num] || { status: 'Sound', name: ANATOMIC_TOOTH_NAMES[num] || `Tooth #${num}` };
     const isSelected = selectedTooth === num;
     const color = getStatusColor(data.status);
     const bg = getStatusBg(data.status, isSelected);
@@ -97,13 +183,13 @@ export const TeethChart = ({ selectedPatient = null }) => {
     return (
       <button
         key={num}
-        onClick={() => setSelectedTooth(isSelected ? null : num)}
+        onClick={() => handleToothClick(num)}
         style={{
-          width: '44px',
-          height: '62px',
+          width: '46px',
+          height: '66px',
           padding: '4px',
           borderRadius: '8px',
-          border: isSelected ? '2px solid #00d2ff' : `1px solid ${color}`,
+          border: isSelected ? '2px solid #00d2ff' : `1px solid ${hasPathology ? color : 'rgba(255, 255, 255, 0.12)'}`,
           backgroundColor: bg,
           display: 'flex',
           flexDirection: 'column',
@@ -111,26 +197,24 @@ export const TeethChart = ({ selectedPatient = null }) => {
           justifyContent: 'space-between',
           cursor: 'pointer',
           position: 'relative',
-          transition: 'all 0.15s ease',
-          boxShadow: isSelected ? '0 0 12px rgba(0, 210, 255, 0.5)' : hasPathology ? `0 0 8px ${color}33` : 'none',
+          transition: 'all 0.18s ease',
+          boxShadow: isSelected ? '0 0 14px rgba(0, 210, 255, 0.6)' : hasPathology ? `0 0 8px ${color}40` : 'none',
         }}
-        title={`${num} - ${data.name}: ${data.status}`}
+        title={`Tooth #${num} - ${data.name}: ${data.status}`}
       >
-        <span style={{ fontSize: '10px', fontWeight: '700', color: isSelected ? '#00d2ff' : '#94a3b8' }}>
+        <span style={{ fontSize: '10.5px', fontWeight: '700', color: isSelected ? '#00d2ff' : hasPathology ? color : '#94a3b8' }}>
           #{num}
         </span>
 
-        {/* Anatomic Tooth Crown Graphic */}
+        {/* Anatomic Tooth Graphic */}
         <div style={{ position: 'relative', width: '22px', height: '26px' }}>
           <svg viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-            {/* Tooth Crown & Root Outline */}
             <path
               d="M4 8C4 4 7 2 12 2C17 2 20 4 20 8C20 12 19 18 16 26C15 27 13.5 25 12 21C10.5 25 9 27 8 26C5 18 4 12 4 8Z"
-              fill={hasPathology ? `${color}33` : 'rgba(255, 255, 255, 0.08)'}
+              fill={hasPathology ? `${color}35` : 'rgba(255, 255, 255, 0.08)'}
               stroke={color}
               strokeWidth="1.5"
             />
-            {/* Occlusal fissure line */}
             <path d="M9 8C11 10 13 10 15 8" stroke={color} strokeWidth="1" strokeLinecap="round" />
           </svg>
 
@@ -144,7 +228,7 @@ export const TeethChart = ({ selectedPatient = null }) => {
                 height: '7px',
                 borderRadius: '50%',
                 backgroundColor: color,
-                boxShadow: `0 0 6px ${color}`,
+                boxShadow: `0 0 8px ${color}`,
               }}
             />
           )}
@@ -153,7 +237,7 @@ export const TeethChart = ({ selectedPatient = null }) => {
         <span
           style={{
             fontSize: '8.5px',
-            fontWeight: '600',
+            fontWeight: '700',
             color: hasPathology ? color : '#64748b',
             textTransform: 'uppercase',
             letterSpacing: '-0.3px',
@@ -169,28 +253,28 @@ export const TeethChart = ({ selectedPatient = null }) => {
     );
   };
 
-  const selectedData = selectedTooth ? defaultToothFindings[selectedTooth] : null;
+  const selectedData = selectedTooth ? toothFindings[selectedTooth] : null;
 
   return (
     <div
       className="glass-card"
       style={{
-        padding: '22px 24px',
+        padding: '20px 22px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '18px',
+        gap: '16px',
         border: '1px solid var(--border-glass)',
         backgroundColor: 'var(--bg-dark-card)',
         borderRadius: '16px',
       }}
     >
-      {/* Header with Title, Arch Filter, and Finding Counters */}
+      {/* Header with Title, Arch Filter, and Model Status */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '32px',
-              height: '32px',
+              width: '34px',
+              height: '34px',
               borderRadius: '8px',
               backgroundColor: 'rgba(0, 210, 255, 0.15)',
               display: 'flex',
@@ -199,19 +283,22 @@ export const TeethChart = ({ selectedPatient = null }) => {
               border: '1px solid rgba(0, 210, 255, 0.3)',
             }}
           >
-            <Sparkles size={16} color="var(--primary-teal)" />
+            <Sparkles size={18} color="var(--primary-teal)" />
           </div>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
-              Adult Clinical Teeth Chart (FDI Odontogram)
+            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Interactive AI Odontogram & Heat Chart</span>
+              <span className="badge badge-info" style={{ fontSize: '10px', padding: '2px 6px' }}>
+                FDI System
+              </span>
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>
-              Interactive 32-tooth dental arch with AI-synchronized pathological detections
+              Dynamic 32-tooth dental arch populated in real time from AI radiograph inference
             </p>
           </div>
         </div>
 
-        {/* View Switchers */}
+        {/* Arch Filter Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'var(--bg-dark-surface)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
           {['ALL', 'UPPER', 'LOWER'].map((arch) => (
             <button
@@ -243,16 +330,16 @@ export const TeethChart = ({ selectedPatient = null }) => {
           alignItems: 'center',
           gap: '14px',
           padding: '16px 10px',
-          backgroundColor: 'rgba(4, 8, 23, 0.6)',
+          backgroundColor: 'rgba(4, 8, 23, 0.65)',
           borderRadius: '12px',
-          border: '1px solid rgba(0, 210, 255, 0.1)',
+          border: '1px solid rgba(0, 210, 255, 0.12)',
         }}
       >
         {/* UPPER JAW (Maxilla) */}
         {(filterArch === 'ALL' || filterArch === 'UPPER') && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', width: '100%' }}>
             <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', color: '#00d2ff', textTransform: 'uppercase' }}>
-              Maxillary Arch (Upper Jaw)
+              Maxillary Arch (Upper Jaw • Q1 & Q2)
             </div>
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {/* Q1: Upper Right */}
@@ -286,13 +373,13 @@ export const TeethChart = ({ selectedPatient = null }) => {
               </div>
             </div>
             <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', color: '#38bdf8', textTransform: 'uppercase' }}>
-              Mandibular Arch (Lower Jaw)
+              Mandibular Arch (Lower Jaw • Q4 & Q3)
             </div>
           </div>
         )}
       </div>
 
-      {/* Selected Tooth Detail Banner / Quick Action Card */}
+      {/* Selected Tooth Detail Banner */}
       {selectedTooth && selectedData && (
         <div
           style={{
@@ -301,7 +388,7 @@ export const TeethChart = ({ selectedPatient = null }) => {
             alignItems: 'center',
             padding: '12px 18px',
             borderRadius: '10px',
-            backgroundColor: 'rgba(10, 17, 36, 0.9)',
+            backgroundColor: 'rgba(10, 17, 36, 0.95)',
             border: `1px solid ${getStatusColor(selectedData.status)}`,
             boxShadow: `0 4px 16px ${getStatusColor(selectedData.status)}26`,
           }}
@@ -309,8 +396,8 @@ export const TeethChart = ({ selectedPatient = null }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '8px',
                 backgroundColor: `${getStatusColor(selectedData.status)}22`,
                 border: `1px solid ${getStatusColor(selectedData.status)}`,
@@ -341,22 +428,36 @@ export const TeethChart = ({ selectedPatient = null }) => {
                 >
                   {selectedData.status}
                 </span>
+                {selectedData.reviewStatus && (
+                  <span className={`badge ${
+                    selectedData.reviewStatus === 'Confirmed' ? 'badge-success' :
+                    selectedData.reviewStatus === 'Modified' ? 'badge-warning' :
+                    selectedData.reviewStatus === 'Rejected' ? 'badge-error' : 'badge-info'
+                  }`}>
+                    {selectedData.reviewStatus}
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>
-                {selectedData.finding ? `${selectedData.finding} • Confidence: ${selectedData.confidence}` : 'No pathological findings. Anatomic crown & roots within normal limits.'}
+                {selectedData.finding ? `${selectedData.finding} • Confidence: ${selectedData.confidence || 'N/A'}` : 'Healthy anatomic crown and roots within normal limits. No pathological radiolucency detected.'}
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              onClick={() => navigate('/workspace')}
-              className="btn-primary"
-              style={{ padding: '6px 14px', fontSize: '12px' }}
-            >
-              <span>View in AI Radiograph</span>
-              <ArrowRight size={14} />
-            </button>
+            {selectedData.findingId && (
+              <button
+                onClick={() => {
+                  setActiveFindingId(selectedData.findingId);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="btn-primary"
+                style={{ padding: '6px 14px', fontSize: '12px' }}
+              >
+                <span>Focus in Radiograph</span>
+                <ArrowUpRight size={14} />
+              </button>
+            )}
             <button
               onClick={() => setSelectedTooth(null)}
               style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
@@ -368,7 +469,7 @@ export const TeethChart = ({ selectedPatient = null }) => {
         </div>
       )}
 
-      {/* Clinical Legend Footnote */}
+      {/* Clinical Legend Footnote with Dynamic Counts */}
       <div
         style={{
           display: 'flex',
@@ -382,32 +483,38 @@ export const TeethChart = ({ selectedPatient = null }) => {
           color: 'var(--text-secondary)',
         }}
       >
-        <span style={{ fontWeight: '600' }}>Clinical Legend:</span>
+        <span style={{ fontWeight: '600' }}>Live Clinical Legend:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.4)' }} />
-            <span>Sound / Healthy (28)</span>
+            <span>Sound / Healthy ({counts.sound})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-            <span style={{ color: '#ef4444' }}>Caries (2)</span>
+            <span style={{ color: '#ef4444' }}>Caries ({counts.caries})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-            <span style={{ color: '#f59e0b' }}>Demineralization (1)</span>
+            <span style={{ color: '#f59e0b' }}>Demineralization ({counts.demineralization})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a855f7' }} />
-            <span style={{ color: '#a855f7' }}>Periapical (1)</span>
+            <span style={{ color: '#a855f7' }}>Periapical ({counts.periapical})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00d2ff' }} />
-            <span style={{ color: '#00d2ff' }}>Restoration (2)</span>
+            <span style={{ color: '#00d2ff' }}>Restoration ({counts.restoration})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
-            <span style={{ color: '#3b82f6' }}>Impacted (1)</span>
+            <span style={{ color: '#3b82f6' }}>Impacted ({counts.impacted})</span>
           </div>
+          {counts.boneLoss > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f97316' }} />
+              <span style={{ color: '#f97316' }}>Bone Loss ({counts.boneLoss})</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -15,7 +15,6 @@ import {
   Activity
 } from 'lucide-react';
 
-import { TeethChart } from '../../components/clinical/TeethChart';
 
 export const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -100,8 +99,6 @@ export const DoctorDashboard = () => {
         })}
       </div>
 
-      {/* Interactive Clinical Teeth Chart (FDI Odontogram) */}
-      <TeethChart />
 
       {/* Patients Needing Review & AI Highlight */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>

@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
 import { useAuth } from '../../context/AuthContext';
+import { 
+  startClinicalSpeechRecognition, 
+  isSpeechRecognitionSupported,
+  CLINICAL_PRESETS 
+} from '../../services/speechRecognition';
 import { 
   Pill, 
   Mic, 
@@ -14,7 +19,10 @@ import {
   ArrowLeft,
   Save,
   FileCheck,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles,
+  Activity,
+  X
 } from 'lucide-react';
 
 const commonMedicines = [
@@ -49,8 +57,24 @@ export const PrescriptionModule = () => {
   });
 
   const [isRecording, setIsRecording] = useState(false);
+  const [liveInterim, setLiveInterim] = useState('');
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [voiceError, setVoiceError] = useState('');
   const [voiceNote, setVoiceNote] = useState('Take medications strictly after meals. Rinse mouth gently with warm saline solution. Avoid chewing on the right side for 48 hours.');
   const [feedbackMsg, setFeedbackMsg] = useState('');
+
+  const sessionRef = useRef(null);
+  const initialNoteRef = useRef('');
+
+  useEffect(() => {
+    return () => {
+      if (sessionRef.current) {
+        try {
+          sessionRef.current.abort();
+        } catch (_) {}
+      }
+    };
+  }, []);
 
   const addMedication = () => {
     if (!currentMed.medicine) return;
@@ -63,16 +87,65 @@ export const PrescriptionModule = () => {
     setPrescriptions(prev => prev.filter(m => m.id !== id));
   };
 
-  const toggleVoiceRecording = () => {
+  const toggleVoiceRecording = async () => {
     if (isRecording) {
+      if (sessionRef.current) {
+        sessionRef.current.stop();
+        sessionRef.current = null;
+      }
       setIsRecording(false);
-    } else {
-      setIsRecording(true);
-      setTimeout(() => {
-        setIsRecording(false);
-        setVoiceNote('Take Amoxicillin 500mg three times daily for 5 days. Use Ibuprofen for severe pain. Maintain soft diet.');
-      }, 2500);
+      setLiveInterim('');
+      setAudioLevel(0);
+      return;
     }
+
+    setVoiceError('');
+    setLiveInterim('');
+    initialNoteRef.current = voiceNote;
+
+    try {
+      const session = await startClinicalSpeechRecognition({
+        onStart: () => {
+          setIsRecording(true);
+        },
+        onAudioLevel: (lvl) => {
+          setAudioLevel(lvl);
+        },
+        onInterim: (interim) => {
+          setLiveInterim(interim);
+        },
+        onFinal: (finalText) => {
+          const base = initialNoteRef.current.trim();
+          const cleanFinal = finalText.trim();
+          if (cleanFinal) {
+            setVoiceNote(base ? `${base} ${cleanFinal}` : cleanFinal);
+          }
+        },
+        onError: (errMsg) => {
+          setVoiceError(errMsg);
+        },
+        onEnd: () => {
+          setIsRecording(false);
+          setLiveInterim('');
+          setAudioLevel(0);
+          sessionRef.current = null;
+        }
+      });
+      sessionRef.current = session;
+    } catch (err) {
+      console.warn('Voice recording failed to start:', err);
+      setIsRecording(false);
+      setVoiceError(err.message || 'Microphone could not be started.');
+    }
+  };
+
+  const applyAdvicePreset = (presetText) => {
+    setVoiceNote(prev => {
+      const trimmed = prev.trim();
+      return trimmed ? `${trimmed} ${presetText}` : presetText;
+    });
+    setFeedbackMsg('Clinical advice preset appended.');
+    setTimeout(() => setFeedbackMsg(''), 2500);
   };
 
   const exportOfficialPrescriptionPdf = () => {
@@ -486,20 +559,104 @@ export const PrescriptionModule = () => {
 
           {/* Voice Instructions Module */}
           <div className="glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
               <h4 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Volume2 size={16} color="var(--primary-teal)" />
                 <span>Doctor Advice & Voice Dictation</span>
               </h4>
               <button
+                type="button"
                 onClick={toggleVoiceRecording}
                 className={`btn-${isRecording ? 'danger' : 'secondary'} no-print`}
-                style={{ padding: '6px 12px', fontSize: '12px' }}
+                style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
               >
-                {isRecording ? <MicOff size={14} /> : <Mic size={14} />}
-                <span>{isRecording ? 'Listening (Speak now)...' : 'Record Audio Note'}</span>
+                {isRecording ? (
+                  <>
+                    <MicOff size={14} className="pulse-glow" />
+                    <span>Stop Recording</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic size={14} color="var(--primary-teal)" />
+                    <span>Record Audio Note</span>
+                  </>
+                )}
               </button>
             </div>
+
+            {/* Live Recording & Audio Meter Visualizer */}
+            {isRecording && (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: '10px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block', animation: 'pulseGlow 1.2s infinite' }} />
+                    Microphone Active — Speak your clinical advice...
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    Input Level: {audioLevel}%
+                  </span>
+                </div>
+
+                {/* Sound wave / Audio volume bar */}
+                <div style={{ width: '100%', height: '4px', backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${Math.max(5, audioLevel)}%`,
+                      height: '100%',
+                      backgroundColor: audioLevel > 50 ? '#ef4444' : 'var(--primary-teal)',
+                      transition: 'width 0.1s ease'
+                    }}
+                  />
+                </div>
+
+                {liveInterim && (
+                  <p style={{ fontSize: '12px', fontStyle: 'italic', color: 'var(--text-primary)', margin: 0 }}>
+                    Hearing: &ldquo;{liveInterim}&rdquo;
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Voice Service Error / Offline Notice */}
+            {voiceError && (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  marginBottom: '10px',
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '12px',
+                  color: 'var(--text-primary)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertTriangle size={14} color="#f59e0b" />
+                  <span>{voiceError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setVoiceError('')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
 
             <textarea
               className="input-field"
@@ -508,6 +665,45 @@ export const PrescriptionModule = () => {
               onChange={(e) => setVoiceNote(e.target.value)}
               placeholder="Dictated voice instructions or special patient dietary notes..."
             />
+
+            {/* Quick Clinical Advice Presets */}
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Sparkles size={12} color="var(--primary-teal)" />
+                  Quick Clinical Presets
+                </span>
+                {voiceNote && (
+                  <button
+                    type="button"
+                    onClick={() => setVoiceNote('')}
+                    style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  >
+                    Clear text
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {CLINICAL_PRESETS.prescriptionAdvice.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => applyAdvicePreset(item.text)}
+                    className="btn-secondary"
+                    style={{
+                      padding: '3px 8px',
+                      fontSize: '11px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border-glass)'
+                    }}
+                    title={item.text}
+                  >
+                    + {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

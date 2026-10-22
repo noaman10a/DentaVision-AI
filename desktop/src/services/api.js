@@ -3,11 +3,39 @@
  * Owner: Noaman (Tech Lead) / Sneha (Frontend Lead)
  *
  * Bridges the Electron React desktop UI to the Node.js Express backend
- * at http://localhost:5000/api/v1.
+ * at http://localhost:5000/api/v1 with Bearer token authentication.
  */
 
 export const API_BASE_URL = 'http://localhost:5000/api/v1';
 export const AI_DIRECT_URL = 'http://localhost:8000/api/v1';
+
+/**
+ * Helper to construct authorized request headers with clinical session token.
+ */
+export function getAuthHeaders(customHeaders = {}) {
+  const headers = { ...customHeaders };
+  try {
+    const token = sessionStorage.getItem('dentavision_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      const userStr = sessionStorage.getItem('dentavision_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        const generated = btoa(JSON.stringify({
+          id: u.id,
+          email: u.email,
+          role: u.role,
+          ts: Date.now()
+        }));
+        headers['Authorization'] = `Bearer ${generated}`;
+      }
+    }
+  } catch (e) {
+    console.warn('[API] Could not build session auth header', e);
+  }
+  return headers;
+}
 
 /**
  * Checks backend and AI service health status.
@@ -30,7 +58,9 @@ export async function checkSystemHealth() {
  */
 export async function fetchPatients() {
   try {
-    const res = await fetch(`${API_BASE_URL}/patients`);
+    const res = await fetch(`${API_BASE_URL}/patients`, {
+      headers: getAuthHeaders(),
+    });
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -50,7 +80,7 @@ export async function registerPatientApi(patientData) {
   try {
     const res = await fetch(`${API_BASE_URL}/patients`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         name: patientData.name,
         dob: patientData.dob,
@@ -77,7 +107,7 @@ export async function createVisitApi(visitData) {
   try {
     const res = await fetch(`${API_BASE_URL}/visits`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(visitData),
     });
     if (res.ok) {
@@ -103,10 +133,11 @@ export async function analyzeXrayApi(file, patientId, visitId = null) {
   formData.append('patient_id', patientId || 'PT-DEFAULT');
   if (visitId) formData.append('visit_id', visitId);
 
-  // Strategy 1: Attempt via Node.js Backend Proxy (Port 5000)
+  // Strategy 1: Attempt via Node.js Backend Proxy (Port 5000) with Bearer token
   try {
     const res = await fetch(`${API_BASE_URL}/xrays/analyze`, {
       method: 'POST',
+      headers: getAuthHeaders(),
       body: formData,
     });
     if (res.ok) {
@@ -195,7 +226,7 @@ export async function saveReportApi(reportData) {
   try {
     const res = await fetch(`${API_BASE_URL}/reports`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(reportData),
     });
     if (res.ok) {

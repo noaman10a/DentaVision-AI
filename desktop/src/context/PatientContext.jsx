@@ -84,8 +84,10 @@ export const PatientProvider = ({ children }) => {
   const [patients, setPatients] = useState(initialPatients);
   const [activePatient, setActivePatient] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDbConnected, setIsDbConnected] = useState(false);
+  const [dbStatusMessage, setDbStatusMessage] = useState('Checking database connection...');
 
-  // Fetch registered patients from backend with local initialPatients fallback
+  // Fetch registered patients from backend with honest status reporting
   const fetchPatients = useCallback(async () => {
     try {
       const data = await fetchPatientsApi();
@@ -106,14 +108,19 @@ export const PatientProvider = ({ children }) => {
           status: p.status || 'Awaiting Review',
           xrayCount: p.xrayRecords?.length ?? p.xrays?.length ?? 3,
           reportsCount: p.reports?.length ?? 2,
-          visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits
+          visits: (p.visits && p.visits.length > 0) ? p.visits : initialPatients[0].visits,
+          isPersisted: true
         }));
         setPatients(mapped);
+        setIsDbConnected(true);
+        setDbStatusMessage('Connected to live clinical database.');
         return mapped;
       }
     } catch (err) {
       console.warn('[PatientContext] Backend patients fetch notice (http://localhost:5000/api/v1/patients):', err);
     }
+    setIsDbConnected(false);
+    setDbStatusMessage('Local Offline / Demo Mode (PostgreSQL unavailable)');
     return initialPatients;
   }, []);
 
@@ -121,8 +128,15 @@ export const PatientProvider = ({ children }) => {
     fetchPatients();
   }, [fetchPatients]);
 
-  const registerPatient = (newPatientData) => {
-    const newId = `PT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const registerPatient = async (newPatientData) => {
+    let persistedRecord = null;
+    try {
+      persistedRecord = await registerPatientApi(newPatientData);
+    } catch (err) {
+      console.warn('[PatientContext] Could not persist patient to database:', err);
+    }
+
+    const newId = persistedRecord?.id || `PT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const createdPatient = {
       id: newId,
       ...newPatientData,
@@ -130,17 +144,12 @@ export const PatientProvider = ({ children }) => {
       status: 'Registered',
       xrayCount: 0,
       reportsCount: 0,
-      visits: []
+      visits: [],
+      isPersisted: !!persistedRecord
     };
+
     setPatients(prev => [createdPatient, ...prev]);
     setActivePatient(createdPatient);
-
-    // Sync with backend in background (non-blocking)
-    registerPatientApi({
-      ...newPatientData,
-      id: newId
-    }).catch(err => console.warn('[PatientContext] Backend register sync notice:', err));
-
     return createdPatient;
   };
 
@@ -251,7 +260,9 @@ export const PatientProvider = ({ children }) => {
         addClinicalVisit,
         addPatientReport,
         addPatientDocument,
-        fetchPatients
+        fetchPatients,
+        isDbConnected,
+        dbStatusMessage
       }}
     >
       {children}

@@ -31,6 +31,7 @@ const mockAuditLogs = [
 export const AdminDashboard = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState(mockUsersList);
+  const [feedback, setFeedback] = useState('');
 
   const systemMetrics = [
     { title: "Active System Users", value: "4 Staff", desc: "100% operational", icon: Users, color: 'var(--primary-teal)' },
@@ -91,6 +92,23 @@ export const AdminDashboard = () => {
         })}
       </div>
 
+      {feedback && (
+        <div style={{
+          padding: '12px 16px',
+          borderRadius: '8px',
+          backgroundColor: 'rgba(34, 197, 94, 0.15)',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          color: '#22c55e',
+          fontSize: '13px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <span>{feedback}</span>
+        </div>
+      )}
+
       {/* User Management & Audit Logs */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* User Management */}
@@ -148,7 +166,7 @@ export const AdminDashboard = () => {
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>Audit Trail & Security Logs</h3>
-            <button onClick={() => alert('Audit logs refreshed.')} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+            <button onClick={() => { setFeedback('Audit logs refreshed successfully.'); setTimeout(() => setFeedback(''), 3000); }} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
               <RefreshCw size={14} />
               <span>Refresh</span>
             </button>

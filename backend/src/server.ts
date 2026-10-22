@@ -28,6 +28,7 @@ import reportRoutes       from "./routes/report.routes";
 import timelineRoutes     from "./routes/timeline.routes";
 import followupRoutes     from "./routes/followup.routes";
 import xrayRoutes         from "./routes/xray.routes";
+import appointmentRoutes  from "./routes/appointment.routes";
 import { ensureXrayBucketExists } from "./utils/storage.service";
 
 // ---------------------------------------------------------------------------
@@ -80,6 +81,7 @@ app.use("/api/v1/reports",       reportRoutes);
 app.use("/api/v1/timeline",      timelineRoutes);
 app.use("/api/v1/followups",     followupRoutes);
 app.use("/api/v1/xrays",         xrayRoutes);
+app.use("/api/v1/appointments",  appointmentRoutes);
 
 // ---------------------------------------------------------------------------
 // Error Handling (must be last)

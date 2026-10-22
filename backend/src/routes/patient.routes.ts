@@ -1,5 +1,5 @@
 import { Router } from "express";
-
+import { requireAuth, requireRole } from "../middleware/auth";
 import {
   createPatientController,
   getPatientsController,
@@ -8,10 +8,26 @@ import {
 
 const router = Router();
 
-router.post("/", createPatientController);
+// Protect all patient endpoints: requires valid authentication
+router.post(
+  "/",
+  requireAuth,
+  requireRole("admin", "doctor", "reception"),
+  createPatientController
+);
 
-router.get("/", getPatientsController);
+router.get(
+  "/",
+  requireAuth,
+  requireRole("admin", "doctor", "reception"),
+  getPatientsController
+);
 
-router.get("/:id", getPatientByIdController);
+router.get(
+  "/:id",
+  requireAuth,
+  requireRole("admin", "doctor", "reception"),
+  getPatientByIdController
+);
 
 export default router;

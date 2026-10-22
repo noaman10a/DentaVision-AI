@@ -2,15 +2,11 @@
  * DentaVision AI — Authentication & Authorization Middleware
  * Owner: Twahir (Backend Lead)
  *
- * Validates Supabase Auth JWTs from the Authorization header.
+ * Validates clinical Bearer tokens from the Authorization header.
  * Attaches the verified user object to req.user.
  *
  * Usage:
  *   router.get("/protected", requireAuth, requireRole("doctor"), handler)
- *
- * Dev bypass:
- *   If SUPABASE_URL or SUPABASE_ANON_KEY is not configured (local dev without
- *   auth set up), auth is skipped and a mock doctor user is injected.
  */
 
 import { Request, Response, NextFunction } from "express";
@@ -35,7 +31,7 @@ const supabaseConfigured =
   env.SUPABASE_URL !== "" && env.SUPABASE_ANON_KEY !== "";
 
 // ---------------------------------------------------------------------------
-// requireAuth — Validates Supabase JWT
+// requireAuth — Validates Bearer Token
 // ---------------------------------------------------------------------------
 
 export const requireAuth = async (
@@ -43,42 +39,75 @@ export const requireAuth = async (
   _res: Response,
   next: NextFunction
 ): Promise<void> => {
-  // Dev bypass: if Supabase keys not configured, inject a mock doctor user
-  if (isDev && !supabaseConfigured) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return next(unauthorized("Authentication required. No valid Bearer token provided."));
+  }
+
+  const token = authHeader.split(" ")[1]?.trim();
+  if (!token) {
+    return next(unauthorized("Authentication required. Bearer token is empty."));
+  }
+
+  // 1. Explicit development tokens (only active in development environment)
+  if (isDev && token.startsWith("dev-")) {
+    const role: "admin" | "doctor" | "reception" = token.includes("reception")
+      ? "reception"
+      : token.includes("admin")
+      ? "admin"
+      : "doctor";
+
     req.user = {
-      id: "dev-doctor-id",
-      email: "twahir.doctor@dentavision.ai",
-      role: "doctor",
+      id: `${token}-id`,
+      email: `${role}@dentavision.ai`,
+      role,
     };
     return next();
   }
 
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(unauthorized("No valid Bearer token provided"));
-  }
+  // 2. Supabase Auth Verification (when Supabase credentials are configured)
+  if (supabaseConfigured) {
+    try {
+      const { data, error } = await getSupabaseAnon().auth.getUser(token);
+      if (error || !data.user) {
+        return next(unauthorized("Invalid or expired session token"));
+      }
 
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const { data, error } = await getSupabaseAnon().auth.getUser(token);
-    if (error || !data.user) {
-      return next(unauthorized("Invalid or expired token"));
+      const role = data.user.user_metadata?.role || "doctor";
+      req.user = {
+        id: data.user.id,
+        email: data.user.email || "",
+        role: role as "admin" | "doctor" | "reception",
+      };
+      return next();
+    } catch {
+      return next(unauthorized("Session token verification failed"));
     }
-
-    // Extract role from user_metadata (set during Supabase user creation)
-    const role = data.user.user_metadata?.role || "doctor";
-
-    req.user = {
-      id: data.user.id,
-      email: data.user.email || "",
-      role: role as "admin" | "doctor" | "reception",
-    };
-
-    next();
-  } catch {
-    return next(unauthorized("Token validation failed"));
   }
+
+  // 3. Clinical Workstation Session Token (Base64 JSON payload issued upon desktop login)
+  try {
+    const jsonStr = Buffer.from(token, "base64").toString("utf-8");
+    const payload = JSON.parse(jsonStr);
+
+    if (
+      payload &&
+      typeof payload.id === "string" &&
+      typeof payload.role === "string" &&
+      ["admin", "doctor", "reception"].includes(payload.role)
+    ) {
+      req.user = {
+        id: payload.id,
+        email: payload.email || `${payload.role}@dentavision.ai`,
+        role: payload.role as "admin" | "doctor" | "reception",
+      };
+      return next();
+    }
+  } catch {
+    // Token is not a valid base64 JSON token
+  }
+
+  return next(unauthorized("Invalid or unrecognized authentication token"));
 };
 
 // ---------------------------------------------------------------------------

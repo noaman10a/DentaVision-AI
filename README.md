@@ -9,10 +9,9 @@
 [![License](https://img.shields.io/badge/License-Proprietary%20Academic-blue)]()
 
 ---
-
 ## 📌 Executive Summary
 
-**DentaVision AI** is an enterprise-grade clinical workstation and diagnostic decision-support system designed for modern dental clinics. It unifies patient registration, electronic health records (EHR), clinical visit documentation, voice-assisted prescriptions, and local deep-learning radiographic analysis into a single, seamless platform.
+**DentaVision AI** is a clinical workstation and diagnostic decision-support system designed for dental clinics. It unifies patient registration, electronic health records (EHR), clinical visit documentation, voice-assisted prescriptions, and local deep-learning radiographic analysis into a single, seamless platform.
 
 Built around a strict **Human-in-the-Loop (HITL)** architecture, the system guarantees that AI never acts autonomously; instead, every AI observation must be explicitly verified (**Confirm**, **Modify**, or **Reject**) by the attending dental surgeon before being recorded into the official clinical diagnostic report.
 
@@ -20,38 +19,37 @@ Built around a strict **Human-in-the-Loop (HITL)** architecture, the system guar
 
 ## 🏛️ System Architecture
 
-DentaVision AI uses a 3-tier hybrid topology designed for zero-latency clinical operation and maximum patient health data privacy:
+DentaVision AI uses a 3-tier hybrid topology designed for clinical responsiveness and data locality:
 
 ```
                           ┌─────────────────────────────────────┐
                           │     Electron Desktop Application    │
                           │   (React 18 + Vite + HTML5 Canvas)  │
-                          │            Port :3000               │
+                          │            Port :5173 / :3000       │
                           └──────────────┬──────────────────────┘
                                          │
-                   ┌─────────────────────┴─────────────────────┐
-                   │ Dual-Gateway Client-Side Routing          │
-                   ▼                                           ▼
+                    ┌─────────────────────┴─────────────────────┐
+                    │ Client-Side API Gateway                   │
+                    ▼                                           ▼
 ┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
 │       Local AI Microservice         │     │         Express.js Backend          │
-│    (Python 3.10+ / FastAPI / PyTorch│     │      (TypeScript / Prisma ORM)      │
+│   (Python 3.10+ / FastAPI / PyTorch)│     │      (TypeScript / Prisma ORM)      │
 │            Port :8000               │     │             Port :5000              │
 └──────────────────┬──────────────────┘     └──────────────────┬──────────────────┘
                    │                                           │
-                   │ Native 640px Tiles                        │ In-Memory Fallback Store
-                   │ Class-Wise WBF Merging                    │ + PostgreSQL / Supabase
+                   │ Native 640px Tiles                        │ PostgreSQL / Supabase
+                   │ Class-Wise WBF Merging                    │ Relational Store
                    ▼                                           ▼
-      [ YOLO11m Dental Model ]                    [ 14 Relational EHR Models ]
+      [ YOLO11m Dental Model ]                    [ Relational EHR Models ]
 ```
 
 ### Key Architectural Tenets
-1. **Zero-Cloud Health Data Leakage**: Full panoramic dental radiographs are processed exclusively on the clinic's local workstation via the FastAPI microservice (`:8000`), ensuring 100% HIPAA/GDPR health data privacy.
-2. **Dual-Gateway Offline Fallback**: If the central cloud backend is temporarily unreachable, the desktop application routes directly to the local AI engine with zero downtime.
-3. **Resilient In-Memory Persistence**: The backend automatically falls back to an in-memory clinical store if PostgreSQL is offline during field demos.
+1. **Local Radiograph Processing**: Full panoramic dental radiographs are processed locally on the workstation via the FastAPI microservice (`:8000`), keeping patient imaging data on-premise without third-party cloud data transfer.
+2. **Direct AI Service Support**: The desktop workstation can query the local AI service directly or through the authenticated backend proxy.
 
 ---
 
-## 🔬 AI Modeling & Scientific Breakthrough
+## 🔬 AI Modeling & Pipeline Optimization
 
 ### The Downscaling Bottleneck Discovery
 Initial baselines trained on globally downscaled $640 \times 640$ radiographs achieved poor sensitivity on subtle dental pathologies (e.g. Caries: 21.6%, Bone Loss: 1.35%). A mathematical audit of 1,972 ground-truth annotations revealed why:
@@ -65,17 +63,23 @@ To resolve the bottleneck without exceeding GPU memory limits:
 2. **Class-Wise Weighted Box Fusion (WBF)**: Tile detections are projected back into global coordinate space and fused using confidence-weighted coordinate averaging (IoU threshold = 0.40).
 3. **Spatial Quadrant Midline FDI Tooth Numbering**: Centroid spatial clustering sorts findings across upper and lower jaw arches, automatically assigning international **FDI 2-digit tooth codes** (`Tooth #11` to `Tooth #48`).
 
-### Verified Benchmark Results (100 Untouched Test Radiographs)
+### Verified Benchmark Results
 
-| Metric | Baseline YOLOv8 Nano | Champion YOLO11m Tiled + WBF | Improvement |
+> **Evaluation Notes:**
+> * The baseline YOLOv8 Nano model was evaluated on the 153-image validation split at standard default confidence thresholds.
+> * The champion YOLO11m pipeline was evaluated on both the validation split (153 OPGs) and a held-out test split of 100 radiographs.
+> * Recall gains on challenging pathologies (e.g. Caries and Bone Resorption) incorporate calibrated confidence thresholds (e.g. 0.15 for caries, 0.08 for bone resorption) designed for high clinical sensitivity.
+> * The 746 ms inference latency was measured on an NVIDIA RTX 3050 GPU (tiled inference pipeline). On CPU hardware, full radiograph inference typically requires 1.5–3.5 seconds.
+
+| Metric | Baseline YOLOv8 Nano (Val 153) | Champion YOLO11m Tiled + WBF (Val 153) | Champion YOLO11m Tiled + WBF (Test 100) |
 | :--- | :---: | :---: | :---: |
-| **Full Radiograph mAP@50** | 44.1% | **51.4%** | **+7.3%** |
-| **Macro-Recall (Sensitivity)** | 44.9% | **60.2%** | **+15.3%** |
-| **Macro-Precision** | 61.0% | **56.0%** | Optimal F1 Calibration |
-| **Macro-F1 Score** | 51.7% | **58.0%** | **+6.3%** |
-| **Caries Detection Sensitivity** | 21.6% | **56.7%** | **2.6× Gain** 🚀 |
-| **Bone Resorption Sensitivity** | 1.35% | **42.4%** | **31× Gain** 🚀 |
-| **Inference Latency** | 30.7 ms | **746 ms** (Full OPG) | Real-time interactive |
+| **Full Radiograph mAP@50** | 44.1% | 41.3% | **51.4%** |
+| **Macro-Recall (Sensitivity)** | 44.9% | 49.2% | **60.2%** |
+| **Macro-Precision** | 61.0% | 48.8% | **56.0%** |
+| **Macro-F1 Score** | 51.7% | 49.0% | **58.0%** |
+| **Caries Detection Sensitivity** | 21.6% | — | **56.7%** (2.6× Gain) |
+| **Bone Resorption Sensitivity** | 1.35% | — | **42.4%** (31× Gain) |
+| **Inference Latency** | 30.7 ms | 746 ms (RTX 3050) | **746 ms (RTX 3050)** |
 
 ---
 
@@ -87,7 +91,7 @@ To resolve the bottleneck without exceeding GPU memory limits:
 * **Appointment Tracking**: Real-time status badges (*Waiting*, *In Consultation*, *X-Ray Ready*).
 
 ### 2. Senior Dental Surgeon Workspace
-* **Interactive DICOM/OPG Canvas**: HTML5 canvas with zoom, pan, brightness, contrast adjustment, and toggleable AI bounding box overlays.
+* **Interactive Radiograph/OPG Canvas**: HTML5 canvas supporting high-resolution dental panoramic radiographs (PNG and JPEG) with zoom, pan, brightness, contrast adjustment, and toggleable AI bounding box overlays.
 * **Doctor Review Drawer**: Clinician must explicitly **Confirm**, **Modify** (FDI tooth number or condition), or **Reject** each finding.
 * **Clinical Consultation Entry**: Structured capture of Chief Complaint, Clinical Examination, Diagnosis, and Treatment Plan.
 * **Voice-to-Text Prescriptions**: Structured medication builder (Medicine, Strength, Dose, Frequency, Duration) with integrated voice dictation.
@@ -95,7 +99,7 @@ To resolve the bottleneck without exceeding GPU memory limits:
 
 ### 3. Clinic Administration & System Health
 * **Live Microservice Health Monitor**: Continuous ping latency monitor for Desktop, FastAPI, Express API, and Database.
-* **Audit Trail**: Immutable logging of all clinical edits and AI predictions.
+* **Audit Trail**: Security and activity logging of clinical edits and AI predictions.
 
 ---
 

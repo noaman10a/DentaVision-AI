@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePatients } from '../../context/PatientContext';
 import { useAuth } from '../../context/AuthContext';
-import { Search, UserCheck, Calendar, Phone, Mail, FileText, ArrowRight, Filter, ShieldAlert, UploadCloud } from 'lucide-react';
+import { Search, UserCheck, Calendar, Phone, Mail, FileText, ArrowRight, ArrowLeft, Filter, ShieldAlert, UploadCloud } from 'lucide-react';
 import { IntakeUploadModal } from './IntakeUploadModal';
 
 export const PatientSearchPage = () => {
@@ -34,7 +34,7 @@ export const PatientSearchPage = () => {
           className="btn-secondary"
           style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} />
+          <ArrowLeft size={16} />
           <span>Back to {isReception ? 'Queue' : 'Dashboard'}</span>
         </button>
       </div>

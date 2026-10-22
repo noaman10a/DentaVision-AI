@@ -55,11 +55,20 @@ app = FastAPI(
 from fastapi.staticfiles import StaticFiles
 
 # Enable CORS for local Desktop Application (Electron/React)
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restricted to local IPC/workstation clients
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -166,10 +175,12 @@ async def health_check():
     Health check endpoint.
     Verifies service availability and model readiness.
     """
+    predictor = get_predictor()
+    is_model_loaded = bool(predictor is not None and predictor.model is not None)
     return HealthResponse(
-        status="ok",
+        status="ok" if is_model_loaded else "degraded",
         service="dentavision-ai",
-        model_loaded=True
+        model_loaded=is_model_loaded
     )
 
 

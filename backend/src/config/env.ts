@@ -39,7 +39,10 @@ export const env = {
   AI_SERVICE_URL: optional("AI_SERVICE_URL", "http://localhost:8000"),
 
   // CORS
-  CORS_ORIGIN: optional("CORS_ORIGIN", "*"),
+  CORS_ORIGIN: optional(
+    "CORS_ORIGIN",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
+  ),
 } as const;
 
 export const isDev = env.NODE_ENV === "development";

@@ -173,7 +173,14 @@ export const AuthProvider = ({ children }) => {
       };
     }
 
-    // Authentication succeeded
+    // Authentication succeeded - generate clinical workstation session token
+    const token = btoa(JSON.stringify({
+      id: matchedAccount.id,
+      email: matchedAccount.email,
+      role: matchedAccount.role,
+      ts: Date.now()
+    }));
+
     const sessionUser = {
       id: matchedAccount.id,
       name: matchedAccount.name,
@@ -188,17 +195,19 @@ export const AuthProvider = ({ children }) => {
       department: matchedAccount.department || 'Clinical Dentistry',
       suite: matchedAccount.suite || 'Operatory 1',
       bio: matchedAccount.bio || 'Attending clinical practitioner at DentaVision AI dental care.',
+      token,
     };
 
     setUser(sessionUser);
     setIsAuthenticated(true);
     try {
       sessionStorage.setItem('dentavision_user', JSON.stringify(sessionUser));
+      sessionStorage.setItem('dentavision_token', token);
     } catch (e) {
       console.warn('Could not save session', e);
     }
 
-    return { success: true, role: sessionUser.role, user: sessionUser };
+    return { success: true, role: sessionUser.role, user: sessionUser, token };
   };
 
   // Update profile details for the active user
@@ -254,6 +263,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     try {
       sessionStorage.removeItem('dentavision_user');
+      sessionStorage.removeItem('dentavision_token');
     } catch (e) {
       console.warn('Could not clear session', e);
     }
@@ -265,10 +275,18 @@ export const AuthProvider = ({ children }) => {
     // Find first registered user with this role
     const found = Object.values(registeredUsers).find(u => u.role === roleKey);
     if (found) {
-      setUser(found);
+      const token = btoa(JSON.stringify({
+        id: found.id,
+        email: found.email,
+        role: found.role,
+        ts: Date.now()
+      }));
+      const userWithToken = { ...found, token };
+      setUser(userWithToken);
       setIsAuthenticated(true);
       try {
-        sessionStorage.setItem('dentavision_user', JSON.stringify(found));
+        sessionStorage.setItem('dentavision_user', JSON.stringify(userWithToken));
+        sessionStorage.setItem('dentavision_token', token);
       } catch (e) {
         console.warn('Could not update session', e);
       }

@@ -110,6 +110,37 @@ class XRayPredictor:
 
         return keep
 
+    @staticmethod
+    def estimate_fdi_tooth_number(box: list) -> str:
+        """
+        Approximates FDI 2-digit tooth notation based on quadrant midline coordinates in panoramic radiographs.
+        box: [xmin, ymin, xmax, ymax] normalized to [0, 1].
+
+        Upper arch (Maxilla): cy < 0.50
+        Lower arch (Mandible): cy >= 0.50
+
+        Patient Right (Image Left): cx < 0.50 -> Quadrant 1 (Upper), Quadrant 4 (Lower)
+        Patient Left (Image Right): cx >= 0.50 -> Quadrant 2 (Upper), Quadrant 3 (Lower)
+
+        Teeth numbers per quadrant:
+        - Q1 (Upper Right): 11 (central incisor at midline) to 18 (3rd molar at edge)
+        - Q2 (Upper Left):  21 (central incisor at midline) to 28 (3rd molar at edge)
+        - Q3 (Lower Left):  31 (central incisor at midline) to 38 (3rd molar at edge)
+        - Q4 (Lower Right): 41 (central incisor at midline) to 48 (3rd molar at edge)
+        """
+        cx = (box[0] + box[2]) / 2.0
+        cy = (box[1] + box[3]) / 2.0
+
+        dist_from_midline = min(1.0, max(0.0, abs(cx - 0.5) / 0.5))
+        tooth_pos = min(8, max(1, int(dist_from_midline * 8) + 1))
+
+        if cy < 0.50:
+            quadrant = 1 if cx < 0.50 else 2
+        else:
+            quadrant = 4 if cx < 0.50 else 3
+
+        return f"{quadrant}{tooth_pos}"
+
     def predict(
         self,
         image: np.ndarray,
@@ -120,6 +151,9 @@ class XRayPredictor:
         Executes the full AI pipeline:
         Image -> Preprocessing -> Model Forward -> NMS Filtering -> Postprocessing -> Formatted JSON
         """
+        if self.model is None:
+            raise RuntimeError("AI model weights are not loaded or failed to initialize.")
+
         start_time = time.time()
         raw_predictions = []
 
@@ -228,10 +262,7 @@ class XRayPredictor:
                             max(0.0, min(1.0, y2 / h))
                         ]
                         finding_type = YOLO_CLASS_NAMES.get(cls_id, f"Pathology_{cls_id}")
-
-                        is_upper = norm_box[1] < 0.50
-                        base_tooth = 11 if is_upper else 21
-                        tooth_num = str(base_tooth + (int(norm_box[0] * 16) % 16))
+                        tooth_num = XRayPredictor.estimate_fdi_tooth_number(norm_box)
 
                         raw_predictions.append({
                             "class_id": cls_id,
@@ -249,9 +280,7 @@ class XRayPredictor:
                             conf = float(box.conf[0].item())
                             xyxyn = box.xyxyn[0].tolist()
                             finding_type = YOLO_CLASS_NAMES.get(cls_id, f"Pathology_{cls_id}")
-                            is_upper = xyxyn[1] < 0.50
-                            base_tooth = 11 if is_upper else 21
-                            tooth_num = str(base_tooth + (int(xyxyn[0] * 16) % 16))
+                            tooth_num = XRayPredictor.estimate_fdi_tooth_number(xyxyn)
                             raw_predictions.append({
                                 "class_id": cls_id,
                                 "finding_type": finding_type,
@@ -260,62 +289,11 @@ class XRayPredictor:
                                 "bounding_box": [round(c, 3) for c in xyxyn]
                             })
             except Exception as e:
-                logger.warning(f"YOLO inference error ({e}). Falling back to visual engine.")
+                logger.error(f"YOLO inference failed: {e}")
 
-        # Option B: Fallback Engine with IEEE Preprocessing Pyramids
+        # If YOLO found no detections, report honestly (no fabricated findings)
         if not raw_predictions:
-            import cv2
-            import hashlib
-
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if len(image.shape) == 3 else image
-            h, w = gray.shape[:2]
-            md5_hash = hashlib.md5(gray.tobytes()).hexdigest()
-            hash_int = int(md5_hash[:8], 16)
-
-            # Jaw Area Extraction (Elliptical Mask)
-            y_start, y_end = int(h * 0.20), int(h * 0.80)
-            x_start, x_end = int(w * 0.12), int(w * 0.88)
-            roi = gray[y_start:y_end, x_start:x_end]
-
-            clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-            enhanced = clahe.apply(roi)
-            _, thresh = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-            contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            valid_boxes = []
-            for c in contours:
-                area = cv2.contourArea(c)
-                if area > (roi.shape[0] * roi.shape[1] * 0.012):
-                    bx, by, bw, bh = cv2.boundingRect(c)
-                    fx_min = round(max(0.12, (x_start + bx) / float(w)), 3)
-                    fy_min = round(max(0.24, (y_start + by) / float(h)), 3)
-                    fx_max = round(min(0.88, (x_start + bx + bw) / float(w)), 3)
-                    fy_max = round(min(0.78, (y_start + by + bh) / float(h)), 3)
-                    if (fx_max - fx_min) >= 0.10 and (fy_max - fy_min) >= 0.10:
-                        valid_boxes.append((fx_min, fy_min, fx_max, fy_max))
-
-            if not valid_boxes:
-                valid_boxes = [(0.35, 0.28, 0.65, 0.52), (0.25, 0.50, 0.55, 0.72)]
-
-            valid_boxes.sort(key=lambda b: (b[2] - b[0]) * (b[3] - b[1]), reverse=True)
-            pathology_types = ["Carious lesion", "Apical periodontitis", "Bone resorbtion", "Prosthetic restoration", "Impacted tooth"]
-            num_findings = 1 if (hash_int % 3 != 0) else 2
-
-            for f_idx in range(min(num_findings, len(valid_boxes))):
-                box = valid_boxes[f_idx % len(valid_boxes)]
-                path_idx = (hash_int + f_idx * 2) % len(pathology_types)
-                detected_type = pathology_types[path_idx]
-                conf = round(min(0.978, max(0.895, 0.895 + (((hash_int + f_idx * 17) % 84) / 1000.0))), 3)
-                is_upper = box[1] < 0.50
-                tooth_num = str((11 if is_upper else 21) + ((hash_int + f_idx * 3) % 16))
-
-                raw_predictions.append({
-                    "class_id": path_idx,
-                    "finding_type": detected_type,
-                    "confidence": conf,
-                    "tooth_number": tooth_num,
-                    "bounding_box": list(box)
-                })
+            logger.info("No pathological abnormalities detected by YOLO model on this radiograph.")
 
         # Step 3: NMS and Postprocessing
         nms_predictions = self.apply_nms(raw_predictions, iou_threshold=0.45)
